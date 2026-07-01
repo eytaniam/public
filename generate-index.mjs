@@ -88,16 +88,47 @@ function walk(dir, root, outFile, files = []) {
 }
 
 function stripHtml(html) {
-  return html
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
+  const lower = html.toLowerCase();
+  let text = "";
+
+  for (let index = 0; index < html.length; index += 1) {
+    if (html[index] !== "<") {
+      text += html[index];
+      continue;
+    }
+
+    if (lower.startsWith("<!--", index)) {
+      const commentEnd = lower.indexOf("-->", index + 4);
+      index = commentEnd === -1 ? html.length : commentEnd + 2;
+      text += " ";
+      continue;
+    }
+
+    if (lower.startsWith("<script", index) || lower.startsWith("<style", index)) {
+      const tagName = lower.startsWith("<script", index) ? "script" : "style";
+      const closingStart = lower.indexOf(`</${tagName}`, index + tagName.length + 1);
+      if (closingStart === -1) {
+        index = html.length;
+      } else {
+        const closingEnd = lower.indexOf(">", closingStart);
+        index = closingEnd === -1 ? html.length : closingEnd;
+      }
+      text += " ";
+      continue;
+    }
+
+    const tagEnd = lower.indexOf(">", index + 1);
+    index = tagEnd === -1 ? html.length : tagEnd;
+    text += " ";
+  }
+
+  return text
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&amp;/gi, "&")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -419,6 +450,10 @@ function renderPdf(chromePath, url, outputPath) {
 }
 
 function generatePdfs(args, records) {
+  for (const record of records) {
+    record.pdfHref = pdfHrefFor(record, args.pdfDir);
+  }
+
   if (!args.pdfs) return;
 
   const chromePath = findChrome(args.chrome);
@@ -431,9 +466,7 @@ function generatePdfs(args, records) {
 
   try {
     for (const record of records) {
-      const pdfHref = pdfHrefFor(record, args.pdfDir);
-      const pdfPath = resolve(args.root, decodeURI(pdfHref));
-      record.pdfHref = pdfHref;
+      const pdfPath = resolve(args.root, decodeURI(record.pdfHref));
 
       if (record.type === "html") {
         renderPdf(chromePath, pathToFileURL(record.sourcePath).href, pdfPath);
@@ -449,12 +482,43 @@ function generatePdfs(args, records) {
   }
 }
 
-function safeJson(value) {
-  return JSON.stringify(value).replace(/</g, "\\u003c");
+function openIconMarkup() {
+  return '<svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7"></path><path d="M8 7h9v9"></path></svg>';
+}
+
+function downloadIconMarkup() {
+  return '<svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg>';
+}
+
+function renderCard(record) {
+  const typeClass = record.type === "html" ? "html" : "markdown";
+  const typeLabel = record.type === "html" ? "HTML" : "MD";
+  const preview = record.type === "html"
+    ? `<iframe src="${escapeHtml(record.href)}" title="Preview of ${escapeHtml(record.title)}" loading="lazy"></iframe>`
+    : `<div class="markdown-preview"><div class="doc-line"></div><p>${escapeHtml(record.excerpt || "Markdown document")}</p></div>`;
+  const pdfAction = record.pdfHref
+    ? `<a class="pdf-link" href="${escapeHtml(record.pdfHref)}" download>${downloadIconMarkup()}<span>PDF</span></a>`
+    : "";
+
+  return `<article class="card" data-type="${typeClass}" data-search="${escapeHtml(record.searchText)}">
+      <div class="preview">${preview}</div>
+      <div class="body">
+        <div class="meta"><span class="type ${typeClass}">${typeLabel}</span><span>Updated ${escapeHtml(record.updated)}</span></div>
+        <h2>${escapeHtml(record.title)}</h2>
+        <p class="path">${escapeHtml(record.path)}</p>
+        <div class="actions">
+          <div class="action-links">
+            <a class="open-link" href="${escapeHtml(record.href)}">${openIconMarkup()}<span>Open</span></a>
+            ${pdfAction}
+          </div>
+          <span class="folder" title="${escapeHtml(record.folder)}">${escapeHtml(record.folder)}</span>
+        </div>
+      </div>
+    </article>`;
 }
 
 function renderHtml({ title, records }) {
-  const json = safeJson(records);
+  const cardsHtml = records.map(renderCard).join("\n");
   const htmlCount = records.filter((record) => record.type === "html").length;
   const markdownCount = records.filter((record) => record.type === "markdown").length;
   const pdfCount = records.filter((record) => record.pdfHref).length;
@@ -866,75 +930,39 @@ function renderHtml({ title, records }) {
     </section>
 
     <p class="results-line" id="resultsLine"></p>
-    <section class="grid" id="grid" aria-live="polite"></section>
+    <section class="grid" id="grid" aria-live="polite">
+      ${cardsHtml}
+    </section>
     <section class="empty" id="empty">No matching files.</section>
   </main>
 
-  <script id="index-data" type="application/json">${json}</script>
   <script>
-    const records = JSON.parse(document.getElementById("index-data").textContent);
     const grid = document.getElementById("grid");
     const empty = document.getElementById("empty");
     const searchInput = document.getElementById("search");
     const resultsLine = document.getElementById("resultsLine");
     const filterButtons = Array.from(document.querySelectorAll(".filter"));
+    const cards = Array.from(grid.querySelectorAll(".card"));
     let activeFilter = "all";
 
-    function escapeHtml(value) {
-      return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
-    }
-
-    function icon() {
-      return '<svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7"></path><path d="M8 7h9v9"></path></svg>';
-    }
-
-    function downloadIcon() {
-      return '<svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg>';
-    }
-
-    function card(record) {
-      const preview = record.type === "html"
-        ? '<iframe src="' + record.href + '" title="Preview of ' + escapeHtml(record.title) + '" loading="lazy"></iframe>'
-        : '<div class="markdown-preview"><div class="doc-line"></div><p>' + escapeHtml(record.excerpt || "Markdown document") + '</p></div>';
-      const pdfAction = record.pdfHref
-        ? '<a class="pdf-link" href="' + record.pdfHref + '" download>' + downloadIcon() + '<span>PDF</span></a>'
-        : '';
-
-      return '<article class="card">' +
-        '<div class="preview">' + preview + '</div>' +
-        '<div class="body">' +
-          '<div class="meta"><span class="type ' + record.type + '">' + (record.type === "html" ? "HTML" : "MD") + '</span><span>Updated ' + escapeHtml(record.updated) + '</span></div>' +
-          '<h2>' + escapeHtml(record.title) + '</h2>' +
-          '<p class="path">' + escapeHtml(record.path) + '</p>' +
-          '<div class="actions">' +
-            '<div class="action-links">' +
-              '<a class="open-link" href="' + record.href + '">' + icon() + '<span>Open</span></a>' +
-              pdfAction +
-            '</div>' +
-            '<span class="folder" title="' + escapeHtml(record.folder) + '">' + escapeHtml(record.folder) + '</span>' +
-          '</div>' +
-        '</div>' +
-      '</article>';
-    }
-
-    function matches(record, query) {
-      if (activeFilter !== "all" && record.type !== activeFilter) return false;
+    function matches(card, query) {
+      if (activeFilter !== "all" && card.dataset.type !== activeFilter) return false;
       if (!query) return true;
-      return query.split(/\\s+/).every((part) => record.searchText.includes(part));
+      const searchText = card.dataset.search || "";
+      return query.split(/\\s+/).every((part) => searchText.includes(part));
     }
 
     function render() {
       const query = searchInput.value.trim().toLowerCase();
-      const filtered = records.filter((record) => matches(record, query));
-      grid.innerHTML = filtered.map(card).join("");
-      empty.classList.toggle("is-visible", filtered.length === 0);
+      let visibleCount = 0;
+      cards.forEach((card) => {
+        const isVisible = matches(card, query);
+        card.hidden = !isVisible;
+        if (isVisible) visibleCount += 1;
+      });
+      empty.classList.toggle("is-visible", visibleCount === 0);
       const typeLabel = activeFilter === "all" ? "files" : activeFilter === "html" ? "HTML files" : "Markdown files";
-      resultsLine.textContent = filtered.length + " of " + records.length + " " + typeLabel;
+      resultsLine.textContent = visibleCount + " of " + cards.length + " " + typeLabel;
     }
 
     filterButtons.forEach((button) => {

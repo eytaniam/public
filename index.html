@@ -404,75 +404,68 @@
     </section>
 
     <p class="results-line" id="resultsLine"></p>
-    <section class="grid" id="grid" aria-live="polite"></section>
+    <section class="grid" id="grid" aria-live="polite">
+      <article class="card" data-type="html" data-search="governing ai where the work happens gov-ai-deck.html root governing ai where the work happens governing ai where the work happens 16 slides converted from governing-ai-where-the-work-happens-eytan-lerba.pdf &amp;lsaquo; 1 / 16 &amp;rsaquo; &amp;#x26f6; i n f o r m at i o n w e e k w e b i n a r · jun 2026 governing ai where the work actually happens a practical look at governing ai access, for the people and the agents now acting on their behalf. eytan lerba · product lead, governance &amp; infrastructure · retool eytan lerba who i am, and what retool does me retool eytan lerba. i lead the governance &amp; infrastructure where teams build internal software, ai apps, and product at retool. 15+ years building, including agents, on their own data, in their own environment. stripe, google, youtube, and a startup i co-founded. that vantage point, across a wide range of teams i spend my days on exactly this: access, permissions, putting ai into production, is where today&#39;s view and now agents. comes from. i&#39;ll keep this a practitioner&#39;s view. the principles hold whatever you build on. eytan lerba the gap everyone agrees governance should enable ai. the hard part is enforcing it where the work happens. at runtime. eytan lerba the visibility gap is the governance gap we asked 300+ ctos, cios, and cisos how governed their internal ai really is. the honest answers: 8% 5% 55% call their internal are very confident they see want controls in one platform governance “strong” what&#39;s running in production only 7% want them per-app source: retool, state of ai governance 2026 eytan lerba governing ai comes down to three questions it always reduces to access and action: who can reach what, and what they can do. these three get you there. permissions are the foundation under all of them. 1 · who&#39;s acting? a human, an agent using someone&#39;s identity, or an agent with its own. you govern each differently. 2 · what can they reach? which data and actions, and where that limit is actually enforced. 3 · can you stay in control? can you see what happened, verify it before it acts, and pay for it without surprises? eytan lerba question 1 of 3 who&#39;s acting? a human, an agent using someone&#39;s identity, or an agent with its own, and why that&#39;s the first thing to pin down. eytan lerba three kinds of identity touch your data and each is governed differently. most platforms collapse all three into one over-privileged account. 1 2 3 human agent · as the user agent · its own service user acts as themselves. scoped to the uses the person&#39;s own oauth and its own identity &amp; service account, role you already gave them. permissions. acts “as you,” at never a human&#39;s. powerful, so it must machine speed. be explicitly scoped. the highest-risk identity you can&#39;t scope, audit, or trust an action until you know which of these took it. eytan lerba question 2 of 3 what can they reach? which data, which actions, and the part that decides everything: where that limit is actually enforced. eytan lerba three layers of access control environment: instances &amp; spaces define access once at the platform layer; it&#39;s enforced at runtime inside every application. never per app. platform: rbac + data policies (control plane) environment 1 where it runs; who&#39;s isolated. instances &amp; spaces. application: runtime row/column platform (control plane) 2 (data plane) define once: rbac + data policies (rows, columns, masking). application (data plane) 3 enforced at runtime, every request. not authored here. eytan lerba scoped delegation: more secure and more usable least privilege isn&#39;t just an admin setting. it&#39;s a dial you set at every level. admins builders end users split god-mode into scopes. let the scope which resources and data scope what they see and do inside design team own branding without each builder can build against, not an app, down to the row, column, touching sso or spaces. the whole warehouse. and button. we expected a tradeoff between control and speed. scoping at every level gave us both. more secure: least privilege by default, small blast radius. · more usable: every level gets exactly what it owns, no waiting on a central admin. eytan lerba write the rule once. it runs on every request. instead of burying rules in each app, set them once on the serving side, enforced for every app, automation, and agent. a few examples: 1 block the table whole tables denied unless you&#39;re hr or finance 2 3 2 mask columns comp and other sensitive fields hidden from reads 1 3 row-level security rows filtered by role, so reps see only their own examples reflect retool&#39;s direction for serving-side policy; availability varies by capability. eytan lerba question 3 of 3 can you stay in control? seeing what happened, verifying it before it acts, and paying for it without surprises. eytan lerba governing the agent at runtime what we keep hearing from enterprise governance teams, and how we&#39;re building for it. deterministic, not vibes you don&#39;t trust an llm to enforce permissions. it will say “whoops, i did it anyway.” hard rules run on the serving side. ai helps you author policy, not enforce it. a guardian agent checks intent in context where we&#39;re headed: before an agent acts, an independent compliance agent reviews its plan against your policies and logs an allow/deny with a reason. trust, but verify audit every action, export to your siem, run evals, and escalate to a human at consequential steps. reactive becomes proactive. eytan lerba two more ways to stay in control beyond who-can-reach-what: keep sensitive data in place, and keep spend from running away. data stays put spend stays bounded sensitive data never leaves your perimeter, even an agent that can act can also spend. without limits, while agents act. per-user oauth (no shared teams can blow through an ai budget in months. set accounts) and masking apply at request time. self- per-project budgets and usage observability on ai hosting supports the data-residency and sovereignty and compute. govern the dollars the way you govern posture that regulations like gdpr increasingly push the data. toward. eytan lerba three questions to take back to your stack ask these of whatever you build on. clean answers mean you&#39;re in control. gaps are your roadmap. ask your own stack you&#39;re in control if… monday 1 · who&#39;s acting? you can name the identity behind every action, human or agent. inventory which identities your agents use. 2 · what can they reach? access is layered and enforced on the serving side, not per app. move one sensitive resource&#39;s rules to the serving side. 3 · can you stay in control? it&#39;s deterministic, watched, and budgeted. put usage + cost on one dashboard; audit one workflow. eytan lerba t h e ta k e away who&#39;s acting, what they can reach, and can you stay in control. answer all three where the work happens. read the full data: retool&#39;s state of ai governance 2026 → retool.com/blog/ai-governance-report-2026 eytan lerba · retool · find me on linkedin eytan lerba 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16">
+      <div class="preview"><iframe src="gov-ai-deck.html" title="Preview of Governing AI Where the Work Happens" loading="lazy"></iframe></div>
+      <div class="body">
+        <div class="meta"><span class="type html">HTML</span><span>Updated 2026-07-01</span></div>
+        <h2>Governing AI Where the Work Happens</h2>
+        <p class="path">gov-ai-deck.html</p>
+        <div class="actions">
+          <div class="action-links">
+            <a class="open-link" href="gov-ai-deck.html"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7"></path><path d="M8 7h9v9"></path></svg><span>Open</span></a>
+            <a class="pdf-link" href="pdfs/gov-ai-deck.pdf" download><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg><span>PDF</span></a>
+          </div>
+          <span class="folder" title="Root">Root</span>
+        </div>
+      </div>
+    </article>
+<article class="card" data-type="markdown" data-search="public readme.md root public public repo for slides, markdown docs, and html presentation docs. this repo is intended to publish through github pages with jekyll from the main branch and the repository root. how this is organized add .html presentation files anywhere in the repo. add .md docs anywhere in the repo. run the index generator after adding or renaming files: that rewrites index.html with a searchable menu of the repo contents and refreshes downloadable pdfs in pdfs/. github pages in github, use settings pages: source: deploy from a branch branch: main folder: / (root) the site should publish at: https://eytaniam.github.io/public/ current files gov ai deck.html html version of the governing ai deck. generate index.mjs local script that rebuilds the searchable index. index.html generated menu page for the repo. pdfs/ generated pdf downloads for indexed docs. config.yml github pages/jekyll configuration.">
+      <div class="preview"><div class="markdown-preview"><div class="doc-line"></div><p>Public Public repo for slides, markdown docs, and HTML presentation docs. This repo is intended to publish through GitHub Pages with Jekyll from the main branch and the repository root. How this is organized Add .html presentation files anywhere in the repo....</p></div></div>
+      <div class="body">
+        <div class="meta"><span class="type markdown">MD</span><span>Updated 2026-07-01</span></div>
+        <h2>Public</h2>
+        <p class="path">README.md</p>
+        <div class="actions">
+          <div class="action-links">
+            <a class="open-link" href="README.md"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7"></path><path d="M8 7h9v9"></path></svg><span>Open</span></a>
+            <a class="pdf-link" href="pdfs/README.pdf" download><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg><span>PDF</span></a>
+          </div>
+          <span class="folder" title="Root">Root</span>
+        </div>
+      </div>
+    </article>
+    </section>
     <section class="empty" id="empty">No matching files.</section>
   </main>
 
-  <script id="index-data" type="application/json">[{"title":"Governing AI Where the Work Happens","href":"gov-ai-deck.html","path":"gov-ai-deck.html","folder":"Root","type":"html","excerpt":"Governing AI Where the Work Happens Governing AI Where the Work Happens 16 slides converted from Governing-AI-Where-the-Work-Happens-Eytan-Lerba.pdf &lsaquo; 1 / 16 &rsaquo; &#x26F6; I N F O R M AT I O N W E E K W E B I N A R · JUN 2026 Governing AI where...","searchText":"governing ai where the work happens gov-ai-deck.html root governing ai where the work happens governing ai where the work happens 16 slides converted from governing-ai-where-the-work-happens-eytan-lerba.pdf &lsaquo; 1 / 16 &rsaquo; &#x26f6; i n f o r m at i o n w e e k w e b i n a r · jun 2026 governing ai where the work actually happens a practical look at governing ai access, for the people and the agents now acting on their behalf. eytan lerba · product lead, governance & infrastructure · retool eytan lerba who i am, and what retool does me retool eytan lerba. i lead the governance & infrastructure where teams build internal software, ai apps, and product at retool. 15+ years building, including agents, on their own data, in their own environment. stripe, google, youtube, and a startup i co-founded. that vantage point, across a wide range of teams i spend my days on exactly this: access, permissions, putting ai into production, is where today's view and now agents. comes from. i'll keep this a practitioner's view. the principles hold whatever you build on. eytan lerba the gap everyone agrees governance should enable ai. the hard part is enforcing it where the work happens. at runtime. eytan lerba the visibility gap is the governance gap we asked 300+ ctos, cios, and cisos how governed their internal ai really is. the honest answers: 8% 5% 55% call their internal are very confident they see want controls in one platform governance “strong” what's running in production only 7% want them per-app source: retool, state of ai governance 2026 eytan lerba governing ai comes down to three questions it always reduces to access and action: who can reach what, and what they can do. these three get you there. permissions are the foundation under all of them. 1 · who's acting? a human, an agent using someone's identity, or an agent with its own. you govern each differently. 2 · what can they reach? which data and actions, and where that limit is actually enforced. 3 · can you stay in control? can you see what happened, verify it before it acts, and pay for it without surprises? eytan lerba question 1 of 3 who's acting? a human, an agent using someone's identity, or an agent with its own, and why that's the first thing to pin down. eytan lerba three kinds of identity touch your data and each is governed differently. most platforms collapse all three into one over-privileged account. 1 2 3 human agent · as the user agent · its own service user acts as themselves. scoped to the uses the person's own oauth and its own identity & service account, role you already gave them. permissions. acts “as you,” at never a human's. powerful, so it must machine speed. be explicitly scoped. the highest-risk identity you can't scope, audit, or trust an action until you know which of these took it. eytan lerba question 2 of 3 what can they reach? which data, which actions, and the part that decides everything: where that limit is actually enforced. eytan lerba three layers of access control environment: instances & spaces define access once at the platform layer; it's enforced at runtime inside every application. never per app. platform: rbac + data policies (control plane) environment 1 where it runs; who's isolated. instances & spaces. application: runtime row/column platform (control plane) 2 (data plane) define once: rbac + data policies (rows, columns, masking). application (data plane) 3 enforced at runtime, every request. not authored here. eytan lerba scoped delegation: more secure and more usable least privilege isn't just an admin setting. it's a dial you set at every level. admins builders end users split god-mode into scopes. let the scope which resources and data scope what they see and do inside design team own branding without each builder can build against, not an app, down to the row, column, touching sso or spaces. the whole warehouse. and button. we expected a tradeoff between control and speed. scoping at every level gave us both. more secure: least privilege by default, small blast radius. · more usable: every level gets exactly what it owns, no waiting on a central admin. eytan lerba write the rule once. it runs on every request. instead of burying rules in each app, set them once on the serving side, enforced for every app, automation, and agent. a few examples: 1 block the table whole tables denied unless you're hr or finance 2 3 2 mask columns comp and other sensitive fields hidden from reads 1 3 row-level security rows filtered by role, so reps see only their own examples reflect retool's direction for serving-side policy; availability varies by capability. eytan lerba question 3 of 3 can you stay in control? seeing what happened, verifying it before it acts, and paying for it without surprises. eytan lerba governing the agent at runtime what we keep hearing from enterprise governance teams, and how we're building for it. deterministic, not vibes you don't trust an llm to enforce permissions. it will say “whoops, i did it anyway.” hard rules run on the serving side. ai helps you author policy, not enforce it. a guardian agent checks intent in context where we're headed: before an agent acts, an independent compliance agent reviews its plan against your policies and logs an allow/deny with a reason. trust, but verify audit every action, export to your siem, run evals, and escalate to a human at consequential steps. reactive becomes proactive. eytan lerba two more ways to stay in control beyond who-can-reach-what: keep sensitive data in place, and keep spend from running away. data stays put spend stays bounded sensitive data never leaves your perimeter, even an agent that can act can also spend. without limits, while agents act. per-user oauth (no shared teams can blow through an ai budget in months. set accounts) and masking apply at request time. self- per-project budgets and usage observability on ai hosting supports the data-residency and sovereignty and compute. govern the dollars the way you govern posture that regulations like gdpr increasingly push the data. toward. eytan lerba three questions to take back to your stack ask these of whatever you build on. clean answers mean you're in control. gaps are your roadmap. ask your own stack you're in control if… monday 1 · who's acting? you can name the identity behind every action, human or agent. inventory which identities your agents use. 2 · what can they reach? access is layered and enforced on the serving side, not per app. move one sensitive resource's rules to the serving side. 3 · can you stay in control? it's deterministic, watched, and budgeted. put usage + cost on one dashboard; audit one workflow. eytan lerba t h e ta k e away who's acting, what they can reach, and can you stay in control. answer all three where the work happens. read the full data: retool's state of ai governance 2026 → retool.com/blog/ai-governance-report-2026 eytan lerba · retool · find me on linkedin eytan lerba 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16","updated":"2026-07-01","pdfHref":"pdfs/gov-ai-deck.pdf"},{"title":"Public","href":"README.md","path":"README.md","folder":"Root","type":"markdown","excerpt":"Public Public repo for slides, markdown docs, and HTML presentation docs. This repo is intended to publish through GitHub Pages with Jekyll from the main branch and the repository root. How this is organized Add .html presentation files anywhere in the repo....","searchText":"public readme.md root public public repo for slides, markdown docs, and html presentation docs. this repo is intended to publish through github pages with jekyll from the main branch and the repository root. how this is organized add .html presentation files anywhere in the repo. add .md docs anywhere in the repo. run the index generator after adding or renaming files: that rewrites index.html with a searchable menu of the repo contents and refreshes downloadable pdfs in pdfs/. github pages in github, use settings pages: source: deploy from a branch branch: main folder: / (root) the site should publish at: https://eytaniam.github.io/public/ current files gov ai deck.html html version of the governing ai deck. generate index.mjs local script that rebuilds the searchable index. index.html generated menu page for the repo. pdfs/ generated pdf downloads for indexed docs. config.yml github pages/jekyll configuration.","updated":"2026-07-01","pdfHref":"pdfs/README.pdf"}]</script>
   <script>
-    const records = JSON.parse(document.getElementById("index-data").textContent);
     const grid = document.getElementById("grid");
     const empty = document.getElementById("empty");
     const searchInput = document.getElementById("search");
     const resultsLine = document.getElementById("resultsLine");
     const filterButtons = Array.from(document.querySelectorAll(".filter"));
+    const cards = Array.from(grid.querySelectorAll(".card"));
     let activeFilter = "all";
 
-    function escapeHtml(value) {
-      return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
-    }
-
-    function icon() {
-      return '<svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7"></path><path d="M8 7h9v9"></path></svg>';
-    }
-
-    function downloadIcon() {
-      return '<svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg>';
-    }
-
-    function card(record) {
-      const preview = record.type === "html"
-        ? '<iframe src="' + record.href + '" title="Preview of ' + escapeHtml(record.title) + '" loading="lazy"></iframe>'
-        : '<div class="markdown-preview"><div class="doc-line"></div><p>' + escapeHtml(record.excerpt || "Markdown document") + '</p></div>';
-      const pdfAction = record.pdfHref
-        ? '<a class="pdf-link" href="' + record.pdfHref + '" download>' + downloadIcon() + '<span>PDF</span></a>'
-        : '';
-
-      return '<article class="card">' +
-        '<div class="preview">' + preview + '</div>' +
-        '<div class="body">' +
-          '<div class="meta"><span class="type ' + record.type + '">' + (record.type === "html" ? "HTML" : "MD") + '</span><span>Updated ' + escapeHtml(record.updated) + '</span></div>' +
-          '<h2>' + escapeHtml(record.title) + '</h2>' +
-          '<p class="path">' + escapeHtml(record.path) + '</p>' +
-          '<div class="actions">' +
-            '<div class="action-links">' +
-              '<a class="open-link" href="' + record.href + '">' + icon() + '<span>Open</span></a>' +
-              pdfAction +
-            '</div>' +
-            '<span class="folder" title="' + escapeHtml(record.folder) + '">' + escapeHtml(record.folder) + '</span>' +
-          '</div>' +
-        '</div>' +
-      '</article>';
-    }
-
-    function matches(record, query) {
-      if (activeFilter !== "all" && record.type !== activeFilter) return false;
+    function matches(card, query) {
+      if (activeFilter !== "all" && card.dataset.type !== activeFilter) return false;
       if (!query) return true;
-      return query.split(/\s+/).every((part) => record.searchText.includes(part));
+      const searchText = card.dataset.search || "";
+      return query.split(/\s+/).every((part) => searchText.includes(part));
     }
 
     function render() {
       const query = searchInput.value.trim().toLowerCase();
-      const filtered = records.filter((record) => matches(record, query));
-      grid.innerHTML = filtered.map(card).join("");
-      empty.classList.toggle("is-visible", filtered.length === 0);
+      let visibleCount = 0;
+      cards.forEach((card) => {
+        const isVisible = matches(card, query);
+        card.hidden = !isVisible;
+        if (isVisible) visibleCount += 1;
+      });
+      empty.classList.toggle("is-visible", visibleCount === 0);
       const typeLabel = activeFilter === "all" ? "files" : activeFilter === "html" ? "HTML files" : "Markdown files";
-      resultsLine.textContent = filtered.length + " of " + records.length + " " + typeLabel;
+      resultsLine.textContent = visibleCount + " of " + cards.length + " " + typeLabel;
     }
 
     filterButtons.forEach((button) => {
