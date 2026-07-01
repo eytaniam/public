@@ -1,7 +1,9 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { basename, dirname, extname, join, relative, resolve, sep } from "node:path";
-import { fileURLToPath } from "node:url";
+import { pathToFileURL } from "node:url";
 
 const DEFAULT_IGNORES = new Set([
   ".git",
@@ -15,6 +17,7 @@ const DEFAULT_IGNORES = new Set([
   "dist",
   "node_modules",
   "outputs",
+  "pdfs",
   "vendor",
   "work",
   "__pycache__",
@@ -28,6 +31,9 @@ function parseArgs(argv) {
     out: "index.html",
     title: "Public docs",
     extra: [],
+    pdfs: true,
+    pdfDir: "pdfs",
+    chrome: process.env.CHROME_PATH || "",
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -36,8 +42,11 @@ function parseArgs(argv) {
     else if (arg === "--out") args.out = argv[++index];
     else if (arg === "--title") args.title = argv[++index];
     else if (arg === "--extra") args.extra.push(argv[++index]);
+    else if (arg === "--pdf-dir") args.pdfDir = argv[++index];
+    else if (arg === "--chrome") args.chrome = argv[++index];
+    else if (arg === "--skip-pdfs") args.pdfs = false;
     else if (arg === "--help" || arg === "-h") {
-      console.log("Usage: node generate-index.mjs [--root repo-root] [--out index.html] [--title \"Public docs\"] [--extra /abs/file.html:repo/path.html]");
+      console.log("Usage: node generate-index.mjs [--root repo-root] [--out index.html] [--title \"Public docs\"] [--pdf-dir pdfs] [--chrome /path/to/chrome] [--skip-pdfs] [--extra /abs/file.html:repo/path.html]");
       process.exit(0);
     } else {
       throw new Error(`Unknown argument: ${arg}`);
@@ -46,6 +55,7 @@ function parseArgs(argv) {
 
   args.root = resolve(args.root);
   args.out = resolve(args.root, args.out);
+  args.pdfDir = toPosixPath(args.pdfDir).replace(/^\/+/, "").replace(/\/+$/, "") || "pdfs";
   return args;
 }
 
@@ -174,7 +184,7 @@ function fileRecord({ filePath, root, hrefOverride = null }) {
   const folderPath = toPosixPath(dirname(href));
   const folder = folderPath === "." ? "Root" : folderPath;
 
-  return {
+  const record = {
     title,
     href,
     path: decodeURI(href),
@@ -184,6 +194,13 @@ function fileRecord({ filePath, root, hrefOverride = null }) {
     searchText: `${title} ${decodeURI(href)} ${folder} ${rawText}`.toLowerCase(),
     updated: stats.mtime.toISOString().slice(0, 10),
   };
+
+  Object.defineProperty(record, "sourcePath", {
+    value: filePath,
+    enumerable: false,
+  });
+
+  return record;
 }
 
 function buildManifest(args) {
@@ -207,6 +224,231 @@ function buildManifest(args) {
   return records;
 }
 
+function findChrome(explicitPath) {
+  const candidates = [
+    explicitPath,
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "/Applications/Chromium.app/Contents/MacOS/Chromium",
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) return candidate;
+  }
+
+  for (const command of ["google-chrome", "chromium", "chromium-browser", "chrome"]) {
+    try {
+      return execFileSync("which", [command], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+    } catch {
+      // Keep searching.
+    }
+  }
+
+  return "";
+}
+
+function pdfHrefFor(record, pdfDir) {
+  const decodedPath = decodeURI(record.href).replace(/\\/g, "/");
+  const withoutExtension = decodedPath.replace(/\.[^/.]+$/, "");
+  return encodeURI(toPosixPath(join(pdfDir, `${withoutExtension}.pdf`)));
+}
+
+function markdownToHtml(markdown) {
+  const withoutFrontMatter = markdown.replace(/^---[\s\S]*?---\s*/m, "");
+  const lines = withoutFrontMatter.split(/\r?\n/);
+  const output = [];
+  let inCode = false;
+  let codeLines = [];
+  let listItems = [];
+  let paragraph = [];
+
+  function inline(value) {
+    return escapeHtml(value)
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+  }
+
+  function flushList() {
+    if (listItems.length === 0) return;
+    output.push("<ul>");
+    for (const item of listItems) output.push(`<li>${inline(item)}</li>`);
+    output.push("</ul>");
+    listItems = [];
+  }
+
+  function flushParagraph() {
+    if (paragraph.length === 0) return;
+    output.push(`<p>${inline(paragraph.join(" "))}</p>`);
+    paragraph = [];
+  }
+
+  for (const line of lines) {
+    if (line.trim().startsWith("```")) {
+      if (inCode) {
+        output.push(`<pre><code>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
+        codeLines = [];
+        inCode = false;
+      } else {
+        flushParagraph();
+        flushList();
+        inCode = true;
+      }
+      continue;
+    }
+
+    if (inCode) {
+      codeLines.push(line);
+      continue;
+    }
+
+    const heading = line.match(/^(#{1,6})\s+(.+)$/);
+    if (heading) {
+      flushParagraph();
+      flushList();
+      const level = Math.min(heading[1].length, 4);
+      output.push(`<h${level}>${inline(heading[2].trim())}</h${level}>`);
+      continue;
+    }
+
+    const bullet = line.match(/^\s*[-*]\s+(.+)$/);
+    if (bullet) {
+      flushParagraph();
+      listItems.push(bullet[1].trim());
+      continue;
+    }
+
+    if (line.trim() === "") {
+      flushParagraph();
+      flushList();
+      continue;
+    }
+
+    flushList();
+    paragraph.push(line.trim());
+  }
+
+  flushParagraph();
+  flushList();
+
+  if (inCode) output.push(`<pre><code>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
+  return output.join("\n");
+}
+
+function markdownPrintPage(record) {
+  const markdown = readFileSync(record.sourcePath, "utf8");
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>${escapeHtml(record.title)}</title>
+  <style>
+    :root {
+      color: #17191f;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 44px 36px;
+      line-height: 1.58;
+    }
+
+    h1, h2, h3, h4 {
+      line-height: 1.16;
+      margin: 1.5em 0 0.45em;
+    }
+
+    h1 {
+      font-size: 34px;
+      margin-top: 0;
+    }
+
+    h2 {
+      font-size: 25px;
+      border-top: 1px solid #d7dce3;
+      padding-top: 18px;
+    }
+
+    p, li {
+      font-size: 14px;
+    }
+
+    a {
+      color: #2b74c8;
+    }
+
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.92em;
+      background: #eef1f5;
+      border-radius: 4px;
+      padding: 0.1em 0.28em;
+    }
+
+    pre {
+      padding: 14px;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      background: #f6f7f9;
+      border: 1px solid #d7dce3;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    ${markdownToHtml(markdown)}
+  </main>
+</body>
+</html>`;
+}
+
+function renderPdf(chromePath, url, outputPath) {
+  mkdirSync(dirname(outputPath), { recursive: true });
+  execFileSync(chromePath, [
+    "--headless",
+    "--disable-gpu",
+    "--no-sandbox",
+    "--allow-file-access-from-files",
+    "--print-to-pdf-no-header",
+    `--print-to-pdf=${outputPath}`,
+    url,
+  ], { stdio: "ignore" });
+}
+
+function generatePdfs(args, records) {
+  if (!args.pdfs) return;
+
+  const chromePath = findChrome(args.chrome);
+  if (!chromePath) {
+    console.warn("PDF generation skipped: Chrome or Chromium was not found. Use --chrome /path/to/chrome or --skip-pdfs.");
+    return;
+  }
+
+  const tempDir = mkdtempSync(join(tmpdir(), "public-index-pdfs-"));
+
+  try {
+    for (const record of records) {
+      const pdfHref = pdfHrefFor(record, args.pdfDir);
+      const pdfPath = resolve(args.root, decodeURI(pdfHref));
+      record.pdfHref = pdfHref;
+
+      if (record.type === "html") {
+        renderPdf(chromePath, pathToFileURL(record.sourcePath).href, pdfPath);
+        continue;
+      }
+
+      const tempHtml = join(tempDir, `${basename(record.sourcePath)}.html`);
+      writeFileSync(tempHtml, markdownPrintPage(record));
+      renderPdf(chromePath, pathToFileURL(tempHtml).href, pdfPath);
+    }
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+  }
+}
+
 function safeJson(value) {
   return JSON.stringify(value).replace(/</g, "\\u003c");
 }
@@ -215,6 +457,7 @@ function renderHtml({ title, records }) {
   const json = safeJson(records);
   const htmlCount = records.filter((record) => record.type === "html").length;
   const markdownCount = records.filter((record) => record.type === "markdown").length;
+  const pdfCount = records.filter((record) => record.pdfHref).length;
   const folderCount = new Set(records.map((record) => record.folder)).size;
 
   return `<!doctype html>
@@ -495,7 +738,15 @@ function renderHtml({ title, records }) {
       gap: 12px;
     }
 
-    .open-link {
+    .action-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .open-link,
+    .pdf-link {
       display: inline-flex;
       align-items: center;
       gap: 8px;
@@ -509,9 +760,22 @@ function renderHtml({ title, records }) {
       font-size: 14px;
     }
 
+    .pdf-link {
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--text);
+    }
+
     .open-link:hover,
     .open-link:focus-visible {
       background: #2b74c8;
+      outline: none;
+    }
+
+    .pdf-link:hover,
+    .pdf-link:focus-visible {
+      border-color: #2b74c8;
+      color: #2b74c8;
       outline: none;
     }
 
@@ -581,6 +845,7 @@ function renderHtml({ title, records }) {
         <div class="metric"><strong>${records.length}</strong><span>Items</span></div>
         <div class="metric"><strong>${htmlCount}</strong><span>HTML</span></div>
         <div class="metric"><strong>${markdownCount}</strong><span>Markdown</span></div>
+        <div class="metric"><strong>${pdfCount}</strong><span>PDFs</span></div>
         <div class="metric"><strong>${folderCount}</strong><span>Folders</span></div>
       </div>
     </header>
@@ -628,10 +893,17 @@ function renderHtml({ title, records }) {
       return '<svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7"></path><path d="M8 7h9v9"></path></svg>';
     }
 
+    function downloadIcon() {
+      return '<svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg>';
+    }
+
     function card(record) {
       const preview = record.type === "html"
         ? '<iframe src="' + record.href + '" title="Preview of ' + escapeHtml(record.title) + '" loading="lazy"></iframe>'
         : '<div class="markdown-preview"><div class="doc-line"></div><p>' + escapeHtml(record.excerpt || "Markdown document") + '</p></div>';
+      const pdfAction = record.pdfHref
+        ? '<a class="pdf-link" href="' + record.pdfHref + '" download>' + downloadIcon() + '<span>PDF</span></a>'
+        : '';
 
       return '<article class="card">' +
         '<div class="preview">' + preview + '</div>' +
@@ -640,7 +912,10 @@ function renderHtml({ title, records }) {
           '<h2>' + escapeHtml(record.title) + '</h2>' +
           '<p class="path">' + escapeHtml(record.path) + '</p>' +
           '<div class="actions">' +
-            '<a class="open-link" href="' + record.href + '">' + icon() + '<span>Open</span></a>' +
+            '<div class="action-links">' +
+              '<a class="open-link" href="' + record.href + '">' + icon() + '<span>Open</span></a>' +
+              pdfAction +
+            '</div>' +
             '<span class="folder" title="' + escapeHtml(record.folder) + '">' + escapeHtml(record.folder) + '</span>' +
           '</div>' +
         '</div>' +
@@ -680,7 +955,7 @@ function renderHtml({ title, records }) {
 
 const args = parseArgs(process.argv.slice(2));
 const records = buildManifest(args);
+generatePdfs(args, records);
 writeFileSync(args.out, renderHtml({ title: args.title, records }));
 console.log(`Wrote ${args.out}`);
 console.log(`Indexed ${records.length} files`);
-

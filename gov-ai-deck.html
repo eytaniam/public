@@ -231,6 +231,11 @@
     }
 
     @media print {
+      @page {
+        size: 13.319in 7.5in;
+        margin: 0;
+      }
+
       :root {
         color-scheme: light;
       }
@@ -238,6 +243,8 @@
       html,
       body {
         background: #fff;
+        margin: 0;
+        width: 13.319in;
       }
 
       .deck-shell {
@@ -255,7 +262,7 @@
       }
 
       .stage {
-        width: 100%;
+        width: 13.319in;
         max-width: none;
         height: auto;
         aspect-ratio: auto;
@@ -268,10 +275,19 @@
       .slide,
       .slide.is-active {
         position: relative;
+        display: block;
+        width: 13.319in;
+        height: 7.5in;
         opacity: 1;
         visibility: visible;
         page-break-after: always;
         break-after: page;
+      }
+
+      .slide img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
       }
     }
   </style>

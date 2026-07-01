@@ -15,7 +15,8 @@ This repo is intended to publish through GitHub Pages with Jekyll from the
 node generate-index.mjs
 ```
 
-That rewrites `index.html` with a searchable menu of the repo contents.
+That rewrites `index.html` with a searchable menu of the repo contents and
+refreshes downloadable PDFs in `pdfs/`.
 
 ## GitHub Pages
 
@@ -34,4 +35,5 @@ https://eytaniam.github.io/public/
 - `gov-ai-deck.html` - HTML version of the Governing AI deck.
 - `generate-index.mjs` - local script that rebuilds the searchable index.
 - `index.html` - generated menu page for the repo.
+- `pdfs/` - generated PDF downloads for indexed docs.
 - `_config.yml` - GitHub Pages/Jekyll configuration.
