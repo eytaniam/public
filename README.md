@@ -32,6 +32,7 @@ https://eytaniam.github.io/public/
 
 ## Current files
 
+- `writing/three-questions-to-govern-ai.md` - published article: 3 questions that tell you whether you're actually governing AI (11 August 2026).
 - `gov-ai-deck.html` - HTML version of the Governing AI deck.
 - `generate-index.mjs` - local script that rebuilds the searchable index.
 - `index.html` - generated menu page for the repo.
