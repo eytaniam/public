@@ -20,6 +20,7 @@ This is a **wiki**: small pages connected by `[[wiki-links]]`. Agents read it to
 - `log/` — append-only journal of completed work; one file per entry, named `YYYY-MM-DD-short-slug.md`
 - `inbox/` — raw quick-capture drops (e.g. from mobile); the librarian files these into the wiki
 - `.claude/`, `.codex/` — per-tool config, pointing at the same shared conventions below. Add `.cursor/` or others the same way if you use them.
+- `.githooks/` — pre-commit hook enforcing the page-size cap below. Run `git config core.hooksPath .githooks` once per clone to enable it.
 
 ## Reading protocol (start of any task)
 

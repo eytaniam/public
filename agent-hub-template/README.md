@@ -10,7 +10,7 @@ Every AI agent starts each session with a blank memory. Use more than one tool, 
 
 ## Quick start
 
-1. **Clone this folder into its own repo** (or push it as-is if you forked the whole thing).
+1. **Get a local copy of just this folder, as its own repo.** This folder lives inside a bigger repo, so a plain `git clone` will pull in more than you want. Easiest path: on GitHub, use the **Code → Download ZIP** button, unzip it, and move the `agent-hub-template/` folder out to wherever you want your new hub to live. Then, inside that folder: `git init && git add -A && git commit -m "start from agent-hub-template"`. (If you're comfortable with git, `git subtree`/sparse-checkout gets you the same result while preserving history — not necessary for a fresh start.)
 2. **Read `AGENTS.md`** — that's the actual contract: how agents read the wiki, how they write back to it, and the freshness convention that keeps facts from silently going stale. Adjust the wording to your own voice, but keep the mechanics.
 3. **Wire your tools to auto-load it.** Claude Code looks for `CLAUDE.md` at repo root — already symlinked to `AGENTS.md` here. Codex (and the emerging cross-tool convention several other agents are adopting) looks for `AGENTS.md` directly. For a tool that doesn't auto-discover either name (Cursor, at time of writing), add a small stub file in that tool's own config location that just points back to `AGENTS.md`.
 4. **Enable the page-size hook, once per clone:** `git config core.hooksPath .githooks` — see "Keeping agents disciplined" below for what it does.
