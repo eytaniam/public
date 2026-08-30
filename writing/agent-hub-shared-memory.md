@@ -5,8 +5,6 @@ author: Eytan Lerba
 date: 2026-08-30
 ---
 
-# Agent Hub: how I give my AI tools shared memory
-
 I use a mix of Claude, Codex, and Grok depending on the task, and I'll often have them check each other's work. The problem with juggling tools like that is each one starts every session with a blank memory. Something I teach one tool rarely carries over to another, and keeping them in sync across a week of work meant constantly re-explaining the same context.
 
 Agent Hub is how I fixed that. It's a single git repository that acts as shared long-term memory across every agent I use and every device I use them from. Any agent that can read files can read it. Any agent that can run git can write to it. Because it's a normal GitHub repo, it's also there on my phone, not just my laptop.

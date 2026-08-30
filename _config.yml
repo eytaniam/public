@@ -18,3 +18,13 @@ exclude:
 # built page, which grows without bound and duplicates whenever two pages
 # share a title.
 header_pages: []
+
+# Long-form articles get their own layout: a breadcrumb back to the index
+# instead of a full site nav, a single title (frontmatter only, not also
+# repeated as an H1 in the body), and real typography. Applies automatically
+# to every file under writing/, current and future.
+defaults:
+  - scope:
+      path: "writing"
+    values:
+      layout: "article"

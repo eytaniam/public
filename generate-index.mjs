@@ -73,6 +73,10 @@ function walk(dir, root, outFile, files = []) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     if (entry.name.startsWith(".") && entry.name !== ".well-known") continue;
     if (entry.isDirectory()) {
+      // Jekyll's own machinery (_layouts, _includes, _data, _sass, _site, ...)
+      // is never site content -- skip anything underscore-prefixed, not just
+      // the specific names in DEFAULT_IGNORES.
+      if (entry.name.startsWith("_")) continue;
       if (DEFAULT_IGNORES.has(entry.name)) continue;
       walk(join(dir, entry.name), root, outFile, files);
       continue;
@@ -168,7 +172,21 @@ function smartTitleFromPath(filePath) {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
+function parseFrontMatterTitle(content) {
+  const frontMatter = content.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
+  if (!frontMatter) return null;
+  const titleLine = frontMatter[1].match(/^title:\s*(.+)$/m);
+  if (!titleLine) return null;
+  return titleLine[1].trim().replace(/^["']|["']$/g, "");
+}
+
 function extractTitle(content, filePath, type) {
+  // Frontmatter title wins when present -- it's what the built page (and any
+  // custom layout) actually titles itself, so the index card should match
+  // rather than fall back to a body H1 that may not even exist anymore.
+  const frontMatterTitle = parseFrontMatterTitle(content);
+  if (frontMatterTitle) return frontMatterTitle.slice(0, 120);
+
   if (type === "html") {
     const titleMatch = content.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
     if (titleMatch && stripHtml(titleMatch[1])) return stripHtml(titleMatch[1]).slice(0, 120);
