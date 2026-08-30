@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Pre-commit hook: block committing wiki pages that have grown past the
+# ~150-line convention in AGENTS.md's Conventions section. When this fires,
+# split the oversized page into a distilled current-state page + a dated
+# log/ entry holding the history, per the Writing protocol.
+#
+# Installed via `git config core.hooksPath .githooks` (see README/AGENTS.md) —
+# that config is per-clone, so run it once after cloning this repo.
+
+set -euo pipefail
+
+MAX_LINES=150
+violations=0
+
+# Only check staged, added-or-modified project/topic pages — these are the
+# pages expected to stay small; docs/ and log/ are allowed to be longer.
+files=$(git diff --cached --name-only --diff-filter=ACM -- 'projects/*.md' 'topics/*.md' || true)
+
+for f in $files; do
+  [ -f "$f" ] || continue
+  lines=$(wc -l < "$f" | tr -d ' ')
+  if [ "$lines" -gt "$MAX_LINES" ]; then
+    echo "pre-commit: $f is $lines lines (limit ${MAX_LINES}) — split into a distilled page + a log/ entry before committing." >&2
+    violations=$((violations + 1))
+  fi
+done
+
+if [ "$violations" -gt 0 ]; then
+  echo "pre-commit: $violations page(s) over the size limit. See AGENTS.md's Conventions section." >&2
+  exit 1
+fi
+
+exit 0
