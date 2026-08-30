@@ -69,6 +69,16 @@ function isSupportedFile(filePath) {
   return SUPPORTED_EXTENSIONS.has(extname(filePath).toLowerCase());
 }
 
+function isRedirectStub(filePath) {
+  // A page left behind at an old path purely to bounce visitors to where the
+  // real content moved -- not itself content, so don't index it.
+  try {
+    return readFileSync(filePath, "utf8").slice(0, 200).includes("generated-redirect");
+  } catch {
+    return false;
+  }
+}
+
 function walk(dir, root, outFile, files = []) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     if (entry.name.startsWith(".") && entry.name !== ".well-known") continue;
@@ -87,6 +97,7 @@ function walk(dir, root, outFile, files = []) {
     const filePath = join(dir, entry.name);
     if (!isSupportedFile(filePath)) continue;
     if (resolve(filePath) === resolve(outFile)) continue;
+    if (isRedirectStub(filePath)) continue;
     files.push(filePath);
   }
 
@@ -180,6 +191,20 @@ function parseFrontMatterTitle(content) {
   return titleLine[1].trim().replace(/^["']|["']$/g, "");
 }
 
+function parseFrontMatterDate(content) {
+  // File mtime is checkout-time, not authoring-time: every fresh clone or CI
+  // checkout resets every file's mtime to "now", and any unrelated edit
+  // (a typo fix, a link update) bumps it too -- so it can't distinguish
+  // "genuinely new" from "recently touched" or survive a re-checkout at all.
+  // The authored `date:` front matter field doesn't drift either way.
+  const frontMatter = content.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
+  if (!frontMatter) return null;
+  const dateLine = frontMatter[1].match(/^date:\s*(.+)$/m);
+  if (!dateLine) return null;
+  const match = dateLine[1].trim().replace(/^["']|["']$/g, "").match(/^(\d{4}-\d{2}-\d{2})/);
+  return match ? match[1] : null;
+}
+
 function extractTitle(content, filePath, type) {
   // Frontmatter title wins when present -- it's what the built page (and any
   // custom layout) actually titles itself, so the index card should match
@@ -245,6 +270,12 @@ function fileRecord({ filePath, root, hrefOverride = null }) {
   const title = extractTitle(content, filePath, type);
   const folderPath = toPosixPath(dirname(href));
   const folder = folderPath === "." ? "Root" : folderPath;
+  // Prefer the authored date over mtime, same reasoning as the title above:
+  // it's what the page actually dates itself as (matches the byline on the
+  // built article), and it's stable across edits and re-checkouts. Falls
+  // back to mtime only for files with no frontmatter date -- currently the
+  // root README and the deck, where there's no authored date to prefer.
+  const updated = parseFrontMatterDate(content) || stats.mtime.toISOString().slice(0, 10);
 
   const record = {
     title,
@@ -254,7 +285,7 @@ function fileRecord({ filePath, root, hrefOverride = null }) {
     type,
     excerpt: excerpt(rawText),
     searchText: `${title} ${decodeURI(href)} ${folder} ${rawText}`.toLowerCase(),
-    updated: stats.mtime.toISOString().slice(0, 10),
+    updated,
   };
 
   Object.defineProperty(record, "sourcePath", {
