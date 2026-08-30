@@ -531,7 +531,7 @@ function renderCard(record) {
     ? `<a class="pdf-link" href="${escapeHtml(record.pdfHref)}" download>${downloadIconMarkup()}<span>PDF</span></a>`
     : "";
 
-  return `<article class="card" data-type="${typeClass}" data-search="${escapeHtml(record.searchText)}">
+  return `<article class="card" data-type="${typeClass}" data-folder="${escapeHtml(record.folder)}" data-haspdf="${record.pdfHref ? "true" : "false"}" data-search="${escapeHtml(record.searchText)}">
       <div class="preview">${preview}</div>
       <div class="body">
         <div class="meta"><span class="type ${typeClass}">${typeLabel}</span><span>Updated ${escapeHtml(record.updated)}</span></div>
@@ -542,7 +542,7 @@ function renderCard(record) {
             <a class="open-link" href="${escapeHtml(record.href)}">${openIconMarkup()}<span>Open</span></a>
             ${pdfAction}
           </div>
-          <span class="folder" title="${escapeHtml(record.folder)}">${escapeHtml(record.folder)}</span>
+          <button type="button" class="folder" data-folder="${escapeHtml(record.folder)}" title="Show every file in ${escapeHtml(record.folder)}">${escapeHtml(record.folder)}</button>
         </div>
       </div>
     </article>`;
@@ -553,7 +553,16 @@ function renderHtml({ title, records }) {
   const htmlCount = records.filter((record) => record.type === "html").length;
   const markdownCount = records.filter((record) => record.type === "markdown").length;
   const pdfCount = records.filter((record) => record.pdfHref).length;
-  const folderCount = new Set(records.map((record) => record.folder)).size;
+
+  const folderCounts = new Map();
+  for (const record of records) {
+    folderCounts.set(record.folder, (folderCounts.get(record.folder) || 0) + 1);
+  }
+  const folderCount = folderCounts.size;
+  const folderOptionsHtml = Array.from(folderCounts.entries())
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([folder, count]) => `<option value="${escapeHtml(folder)}">${escapeHtml(folder)} (${count})</option>`)
+    .join("\n");
 
   return `<!doctype html>
 <html lang="en">
@@ -634,6 +643,22 @@ function renderHtml({ title, records }) {
       border-radius: 8px;
       background: rgba(255, 255, 255, 0.82);
       text-align: right;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .metric-static {
+      cursor: default;
+      display: inline-block;
+    }
+
+    .metric:hover:not(.metric-static) {
+      border-color: var(--muted);
+    }
+
+    .metric[aria-pressed="true"] {
+      border-color: var(--text);
+      background: var(--surface-2);
     }
 
     .metric strong {
@@ -645,6 +670,18 @@ function renderHtml({ title, records }) {
     .metric span {
       color: var(--muted);
       font-size: 12px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
 
     .toolbar {
@@ -686,30 +723,15 @@ function renderHtml({ title, records }) {
       background: transparent;
     }
 
-    .filters {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 4px;
+    .folder-select select {
+      min-width: 160px;
+      height: 44px;
+      padding: 0 12px;
       border: 1px solid var(--line);
       border-radius: 8px;
       background: var(--surface);
-    }
-
-    .filter {
-      min-width: 82px;
-      height: 34px;
-      padding: 0 12px;
-      border: 0;
-      border-radius: 6px;
-      background: transparent;
-      color: var(--muted);
-      cursor: pointer;
-    }
-
-    .filter[aria-pressed="true"] {
       color: var(--text);
-      background: var(--surface-2);
+      cursor: pointer;
     }
 
     .results-line {
@@ -734,6 +756,13 @@ function renderHtml({ title, records }) {
       overflow: hidden;
       display: grid;
       grid-template-rows: 190px minmax(0, auto);
+    }
+
+    .card[hidden] {
+      /* The .card rule above has equal specificity to the browser's own
+         [hidden] rule, and author styles always win that tie -- so without
+         this, setting card.hidden = true in JS had no visual effect at all. */
+      display: none;
     }
 
     .preview {
@@ -882,6 +911,16 @@ function renderHtml({ title, records }) {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      background: none;
+      border: 0;
+      padding: 0;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .folder:hover,
+    .folder:focus-visible {
+      text-decoration: underline;
     }
 
     .empty {
@@ -917,13 +956,8 @@ function renderHtml({ title, records }) {
         text-align: left;
       }
 
-      .filters {
-        justify-content: stretch;
-      }
-
-      .filter {
-        flex: 1;
-        min-width: 0;
+      .folder-select select {
+        width: 100%;
       }
 
       .grid {
@@ -936,16 +970,16 @@ function renderHtml({ title, records }) {
   <main class="shell">
     <header class="masthead">
       <h1>${escapeHtml(title)}</h1>
-      <div class="summary" aria-label="Index summary">
-        <div class="metric"><strong>${records.length}</strong><span>Items</span></div>
-        <div class="metric"><strong>${htmlCount}</strong><span>HTML</span></div>
-        <div class="metric"><strong>${markdownCount}</strong><span>Markdown</span></div>
-        <div class="metric"><strong>${pdfCount}</strong><span>PDFs</span></div>
-        <div class="metric"><strong>${folderCount}</strong><span>Folders</span></div>
+      <div class="summary" role="group" aria-label="Filter by file type">
+        <button class="metric" type="button" data-filter-type="all" aria-pressed="true" title="Show every indexed file"><strong>${records.length}</strong><span>Items</span></button>
+        <button class="metric" type="button" data-filter-type="html" aria-pressed="false" title="Show only HTML files"><strong>${htmlCount}</strong><span>HTML</span></button>
+        <button class="metric" type="button" data-filter-type="markdown" aria-pressed="false" title="Show only Markdown files"><strong>${markdownCount}</strong><span>Markdown</span></button>
+        <button class="metric" type="button" id="pdfToggle" aria-pressed="false" title="Only show files that also have a downloadable PDF version"><strong>${pdfCount}</strong><span>Have a PDF</span></button>
+        <span class="metric metric-static" title="Distinct folders these files live in -- pick one from the dropdown below to filter to it"><strong>${folderCount}</strong><span>Folders</span></span>
       </div>
     </header>
 
-    <section class="toolbar" aria-label="Search and filters">
+    <section class="toolbar" aria-label="Search and folder filter">
       <label class="search">
         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="7"></circle>
@@ -953,11 +987,13 @@ function renderHtml({ title, records }) {
         </svg>
         <input id="search" type="search" autocomplete="off" placeholder="Search titles, paths, folders, and excerpts">
       </label>
-      <div class="filters" role="group" aria-label="File type filter">
-        <button class="filter" type="button" data-filter="all" aria-pressed="true">All</button>
-        <button class="filter" type="button" data-filter="html" aria-pressed="false">HTML</button>
-        <button class="filter" type="button" data-filter="markdown" aria-pressed="false">Markdown</button>
-      </div>
+      <label class="folder-select">
+        <span class="sr-only">Filter by folder</span>
+        <select id="folderFilter" title="Filter to files in one folder">
+          <option value="all">All folders (${records.length})</option>
+          ${folderOptionsHtml}
+        </select>
+      </label>
     </section>
 
     <p class="results-line" id="resultsLine"></p>
@@ -972,12 +1008,16 @@ function renderHtml({ title, records }) {
     const empty = document.getElementById("empty");
     const searchInput = document.getElementById("search");
     const resultsLine = document.getElementById("resultsLine");
-    const filterButtons = Array.from(document.querySelectorAll(".filter"));
+    const typeButtons = Array.from(document.querySelectorAll("[data-filter-type]"));
+    const pdfToggle = document.getElementById("pdfToggle");
+    const folderSelect = document.getElementById("folderFilter");
     const cards = Array.from(grid.querySelectorAll(".card"));
-    let activeFilter = "all";
+    const state = { type: "all", pdfOnly: false, folder: "all" };
 
     function matches(card, query) {
-      if (activeFilter !== "all" && card.dataset.type !== activeFilter) return false;
+      if (state.type !== "all" && card.dataset.type !== state.type) return false;
+      if (state.pdfOnly && card.dataset.haspdf !== "true") return false;
+      if (state.folder !== "all" && card.dataset.folder !== state.folder) return false;
       if (!query) return true;
       const searchText = card.dataset.search || "";
       return query.split(/\\s+/).every((part) => searchText.includes(part));
@@ -992,14 +1032,36 @@ function renderHtml({ title, records }) {
         if (isVisible) visibleCount += 1;
       });
       empty.classList.toggle("is-visible", visibleCount === 0);
-      const typeLabel = activeFilter === "all" ? "files" : activeFilter === "html" ? "HTML files" : "Markdown files";
-      resultsLine.textContent = visibleCount + " of " + cards.length + " " + typeLabel;
+      resultsLine.textContent = visibleCount + " of " + cards.length + " files";
     }
 
-    filterButtons.forEach((button) => {
+    typeButtons.forEach((button) => {
       button.addEventListener("click", () => {
-        activeFilter = button.dataset.filter;
-        filterButtons.forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+        state.type = button.dataset.filterType;
+        typeButtons.forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+        render();
+      });
+    });
+
+    if (pdfToggle) {
+      pdfToggle.addEventListener("click", () => {
+        state.pdfOnly = !state.pdfOnly;
+        pdfToggle.setAttribute("aria-pressed", String(state.pdfOnly));
+        render();
+      });
+    }
+
+    if (folderSelect) {
+      folderSelect.addEventListener("change", () => {
+        state.folder = folderSelect.value;
+        render();
+      });
+    }
+
+    document.querySelectorAll("button.folder[data-folder]").forEach((tag) => {
+      tag.addEventListener("click", () => {
+        state.folder = tag.dataset.folder;
+        if (folderSelect) folderSelect.value = tag.dataset.folder;
         render();
       });
     });
