@@ -32,9 +32,12 @@ https://eytaniam.github.io/public/
 
 ## Current files
 
-- `writing/three-questions-to-govern-ai.md` - published article: 3 questions that tell you whether you're actually governing AI (11 August 2026).
-- `gov-ai-deck.html` - HTML version of the Governing AI deck.
-- `generate-index.mjs` - local script that rebuilds the searchable index.
+- `writing/` - published articles (Jekyll builds each `.md` with front matter into an `.html` page at the same path; the raw `.md` is never served, see `_layouts/article.html`).
+- `decks/gov-ai-deck.html` - HTML version of the Governing AI deck.
+- `gov-ai-deck.html` - a redirect stub, not content, for the deck's old root-level path. Marked `<!-- generated-redirect: do-not-index -->` so `generate-index.mjs` skips it; add the same marker to any future move-redirect.
+- `agent-hub-template/` - a clonable git-repo skeleton, not site content. Excluded from both the Jekyll build (`_config.yml`'s `exclude:`) and the search index (`generate-index.mjs`'s `DEFAULT_IGNORES`) -- update both if you rename or move it.
+- `_layouts/article.html`, `assets/css/article.css` - the layout and styles every page under `writing/` gets automatically (breadcrumb, single title, real typography, copy-to-clipboard on code blocks). Applied via `_config.yml`'s `defaults:` scope on `writing/`, not per-file front matter.
+- `generate-index.mjs` - local script that rebuilds the searchable index (filters, folder/date sort, PDF links).
 - `index.html` - generated menu page for the repo.
 - `pdfs/` - generated PDF downloads for indexed docs.
 - `_config.yml` - GitHub Pages/Jekyll configuration.

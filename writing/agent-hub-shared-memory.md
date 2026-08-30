@@ -103,7 +103,7 @@ Pick whichever path fits how you work.
 
 ### Option 1: clone the repo
 
-I've published a working skeleton at [github.com/eytaniam/public/tree/main/agent-hub-template](https://github.com/eytaniam/public/tree/main/agent-hub-template). It already has the `AGENTS.md` contract, the folder structure, the pre-commit hook, and per-tool config examples in place. Grab it, run `git init`, push it as your own repo, and start writing.
+I've published a working skeleton at [github.com/eytaniam/public/tree/main/agent-hub-template](https://github.com/eytaniam/public/tree/main/agent-hub-template). It already has the `AGENTS.md` contract, the folder structure, the pre-commit hook, and per-tool config for Claude Code, Codex, and Cursor in place. Grab it, run `git init`, push it as your own repo, and start writing. Its own README also covers making this work from *any* project folder, not just sessions you run from inside the hub itself, worth reading before you assume it's fully wired up.
 
 ### Option 2: prompt an agent you already have
 

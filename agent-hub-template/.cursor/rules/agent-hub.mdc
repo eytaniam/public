@@ -1,0 +1,8 @@
+---
+description: Load the Agent Hub contract before any task in this repo
+alwaysApply: true
+---
+
+Before starting any task in this repository, read `AGENTS.md` at the repo root. It is the contract for this wiki: how to read it cheaply (start at `HOME.md`, follow only the `[[links]]` relevant to the task, never bulk-read the repo), how to write back when you finish meaningful work (a dated log entry, an updated project page, link liberally, commit and push), and the freshness-label and page-size conventions that keep it from going stale or unwieldy.
+
+Follow the same protocol Claude Code and Codex follow via their own auto-loaded `CLAUDE.md` / `AGENTS.md` — this rule exists only because Cursor doesn't auto-discover that file the way those two do.
