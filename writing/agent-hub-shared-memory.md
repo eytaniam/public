@@ -107,11 +107,11 @@ I've published a working skeleton at [github.com/eytaniam/public/tree/main/agent
 
 One thing to know before you assume it's fully wired up: the auto-load only fires while your agent's working directory is inside the cloned folder. If you're happy doing hub-related work as its own dedicated session, that's already enough, no extra step needed. If you want every session, in any project folder, to know the hub exists, add a one-line pointer at your tool's global level, once:
 
-- **Claude Code:** a line in your user-level `~/.claude/CLAUDE.md` (separate from the hub's own project-level file, and loaded in every session regardless of folder). Or, if your build has the separate persistent-memory feature, just ask it to remember where the hub lives and when to check it.
-- **Codex:** it merges a global instructions file in addition to whatever `AGENTS.md` it finds by walking up from your working directory. Add the same pointer there.
-- **Cursor:** open Settings → Rules → "User Rules," a global text box rather than a file, and paste the pointer in. It applies across every Cursor project, not just this one.
+- **Claude Code:** a line in your user-level `~/CLAUDE.md` (separate from the hub's own project-level file, and loaded in every session regardless of folder). Don't reach for the separate persistent-memory feature instead: I tried that first and it turned out to be scoped per project directory, not global, so a pointer saved there only covers sessions started from that same folder.
+- **Codex:** it merges a global instructions file (`~/.codex/AGENTS.md`) in addition to whatever `AGENTS.md` it finds by walking up from your working directory. Add the same pointer there.
+- **Cursor:** open Settings → Rules → "User Rules," a global text box rather than a file, and paste the pointer in. Set it to *Always Apply*, not *Apply Intelligently*. The latter leaves it to Cursor's own judgment whether the rule looks relevant, which defeats the point of a rule whose whole job is firing regardless of what the task looks like on the surface.
 
-The pointer only needs to say two things: where the hub lives, and that it's worth checking when relevant. `AGENTS.md` handles the rest once your agent gets there.
+Use an absolute path in the pointer (`/Users/you/agent-hub`), not `~`. It doesn't reliably expand inside every tool call. Beyond that, the pointer only needs to say two things: where the hub lives, and that it's worth checking when relevant. `AGENTS.md` handles the rest once your agent gets there.
 
 ### Option 2: prompt an agent you already have
 
