@@ -12,7 +12,7 @@ Every AI agent starts each session with a blank memory. Use more than one tool, 
 
 1. **Get a local copy of just this folder, as its own repo.** This folder lives inside a bigger repo, so a plain `git clone` will pull in more than you want. Easiest path: on GitHub, use the **Code → Download ZIP** button, unzip it, and move the `agent-hub-template/` folder out to wherever you want your new hub to live. Then, inside that folder: `git init && git add -A && git commit -m "start from agent-hub-template"`. (If you're comfortable with git, `git subtree`/sparse-checkout gets you the same result while preserving history — not necessary for a fresh start.)
 2. **Read `AGENTS.md`** — that's the actual contract: how agents read the wiki, how they write back to it, and the freshness convention that keeps facts from silently going stale. Adjust the wording to your own voice, but keep the mechanics.
-3. **Wire your tools to auto-load it.** Claude Code looks for `CLAUDE.md` at repo root — already symlinked to `AGENTS.md` here. Codex (and the emerging cross-tool convention several other agents are adopting) looks for `AGENTS.md` directly. For a tool that doesn't auto-discover either name (Cursor, at time of writing), add a small stub file in that tool's own config location that just points back to `AGENTS.md`.
+3. **Wire your tools to auto-load it.** Claude Code looks for `CLAUDE.md` at repo root — already symlinked to `AGENTS.md` here. Codex (and the emerging cross-tool convention several other agents are adopting) looks for `AGENTS.md` directly. Cursor doesn't auto-discover either name, so this template ships a `.cursor/rules/agent-hub.mdc` that just points back to `AGENTS.md` — nothing to add for any of the three.
 4. **Enable the page-size hook, once per clone:** `git config core.hooksPath .githooks` — see "Keeping agents disciplined" below for what it does.
 5. **Push to a GitHub repo.** This is what makes it reachable from Claude on mobile/web, Codex cloud, or any other GitHub-aware agent mode — not just your local machine.
 6. **Write your first project page** in `projects/`, list it in `HOME.md`, and start using the read/write protocol from `AGENTS.md` for real work.
@@ -27,6 +27,16 @@ Every AI agent starts each session with a blank memory. Use more than one tool, 
 - **A librarian role** (see `.claude/agents/librarian.md` / `.codex/agents/librarian.toml`) does periodic anti-entropy: fixing broken links, filing the inbox, splitting overgrown pages, refreshing the index, flagging stale projects. Any agent can be asked to "maintain the hub."
 
 Full mechanics, exact conventions, and the sensitive-content rules live in [`AGENTS.md`](./AGENTS.md) — that file is the source of truth, this README is the tour.
+
+## Making this work from anywhere, not just from inside the folder
+
+Everything above only auto-loads while your agent's working directory is inside this repo. That's fine if you're happy doing hub-related work as its own dedicated session, `cd`'d into the clone. If you want *every* session, in *any* project folder, to know the hub exists, add a one-line pointer at your tool's global/user level, once:
+
+- **Claude Code:** add a line to your user-level `~/.claude/CLAUDE.md` (separate from this repo's project-level `CLAUDE.md`, and loaded in every session regardless of folder): something like *"My agent hub lives at `~/path/to/agent-hub` — consult its `AGENTS.md` when a task touches ongoing projects or anything worth remembering across sessions."* If your build has the separate persistent-memory feature (ask it to "remember" something and it recalls that note automatically in later sessions), you can use that instead of editing the file by hand — just ask it to remember where the hub lives and when to check it.
+- **Codex:** Codex merges a global instructions file (check its current docs for the exact path — this convention moves faster than the core `AGENTS.md` standard itself) in addition to whatever `AGENTS.md` it finds by walking up from your working directory. Add the same kind of pointer there.
+- **Cursor:** per-project rules don't cover this by design — they're scoped to the project you're in. Instead, open Settings → Rules → "User Rules" (a global text box, not a file) and paste in the same pointer. It applies across every Cursor project, not just this one.
+
+Whichever tool, the pointer only needs to say two things: where the hub lives, and that it's worth checking when relevant. `AGENTS.md` handles the rest once your agent gets there.
 
 ## Keeping agents disciplined
 
