@@ -103,7 +103,15 @@ Pick whichever path fits how you work.
 
 ### Option 1: clone the repo
 
-I've published a working skeleton at [github.com/eytaniam/public/tree/main/agent-hub-template](https://github.com/eytaniam/public/tree/main/agent-hub-template). It already has the `AGENTS.md` contract, the folder structure, the pre-commit hook, and per-tool config for Claude Code, Codex, and Cursor in place. Grab it, run `git init`, push it as your own repo, and start writing. Its own README also covers making this work from *any* project folder, not just sessions you run from inside the hub itself, worth reading before you assume it's fully wired up.
+I've published a working skeleton at [github.com/eytaniam/public/tree/main/agent-hub-template](https://github.com/eytaniam/public/tree/main/agent-hub-template). It already has the `AGENTS.md` contract, the folder structure, the pre-commit hook, and per-tool config for Claude Code, Codex, and Cursor in place. Grab it, run `git init`, push it as your own repo, and start writing.
+
+One thing to know before you assume it's fully wired up: the auto-load only fires while your agent's working directory is inside the cloned folder. If you're happy doing hub-related work as its own dedicated session, that's already enough, no extra step needed. If you want every session, in any project folder, to know the hub exists, add a one-line pointer at your tool's global level, once:
+
+- **Claude Code:** a line in your user-level `~/.claude/CLAUDE.md` (separate from the hub's own project-level file, and loaded in every session regardless of folder). Or, if your build has the separate persistent-memory feature, just ask it to remember where the hub lives and when to check it.
+- **Codex:** it merges a global instructions file in addition to whatever `AGENTS.md` it finds by walking up from your working directory. Add the same pointer there.
+- **Cursor:** open Settings → Rules → "User Rules," a global text box rather than a file, and paste the pointer in. It applies across every Cursor project, not just this one.
+
+The pointer only needs to say two things: where the hub lives, and that it's worth checking when relevant. `AGENTS.md` handles the rest once your agent gets there.
 
 ### Option 2: prompt an agent you already have
 
