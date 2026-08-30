@@ -89,7 +89,7 @@ Each tool keeps its own native config format (Claude Code uses `.claude/`, Codex
 - Codex's cloud mode can check it out the same way.
 - Any tool with a GitHub-aware agent mode can point at it the same way. You're not limited to your desktop.
 
-One honest caveat: a tool needs some way to read and write GitHub (a native connector, or the ability to run git) to fully participate. A read-only tool can still consume the wiki, for instance by pasting `AGENTS.md` plus a project page into a chat, but it can't write back on its own.
+One honest caveat, and it's why Grok isn't in the folder list above: a tool needs some way to read and write GitHub (a native connector, or the ability to run git) to fully participate. Grok doesn't yet, so for me it's read-only: I paste `AGENTS.md` plus a project page in when I want it caught up, but it can't write back on its own.
 
 ### What this costs, in tokens
 
@@ -189,12 +189,22 @@ Write AGENTS.md with this contract (adapt wording to taste but keep the mechanic
    build one later for convenience. If HOME.md ever stops being a good
    enough index to answer "where do I look," that's the actual problem to
    fix, not a reason to add a bulk-read shortcut.
+9. Other sessions, including mobile or cloud ones, may write to this repo
+   too — git pull before making changes, not just before the final push, to
+   avoid a rejected push or a conflict.
 
 Then:
-- Set up per-tool config so every agent I use (Claude Code, Codex, [others])
-  reads AGENTS.md automatically at the start of a session, and follows the
-  same read/write protocol above. Use each tool's native convention for this
-  (e.g. Claude Code auto-reads CLAUDE.md at repo root).
+- Set up per-tool config so every agent I use (Claude Code, Codex, Cursor,
+  or others) reads AGENTS.md automatically at the start of a session, and
+  follows the same read/write protocol above. Use each tool's native
+  convention for this (e.g. Claude Code auto-reads CLAUDE.md at repo root).
+- Add a global pointer too, not just the project-level file: edit
+  ~/CLAUDE.md (Claude Code), ~/.codex/AGENTS.md (Codex), or add a global
+  User Rule set to Always Apply, not Apply Intelligently (Cursor) — for
+  whichever tools I use — so a session started from any other project
+  folder still knows this hub exists. Use an absolute path, not ~, and
+  show me the exact change before saving it, since these are global files
+  that affect every future session, not just this one.
 - Create a GitHub repo and push this as the origin, so it's reachable from
   mobile (Claude web/mobile, Codex cloud, or any other GitHub-aware agent).
 - Optionally, define a small "librarian" helper (a subagent/config, whatever
