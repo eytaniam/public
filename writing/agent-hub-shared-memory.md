@@ -105,13 +105,32 @@ Pick whichever path fits how you work.
 
 I've published a working skeleton at [github.com/eytaniam/public/tree/main/agent-hub-template](https://github.com/eytaniam/public/tree/main/agent-hub-template). It already has the `AGENTS.md` contract, the folder structure, the pre-commit hook, and per-tool config for Claude Code, Codex, and Cursor in place. Grab it, run `git init`, push it as your own repo, and start writing.
 
-One thing to know before you assume it's fully wired up: the auto-load only fires while your agent's working directory is inside the cloned folder. If you're happy doing hub-related work as its own dedicated session, that's already enough, no extra step needed. If you want every session, in any project folder, to know the hub exists, add a one-line pointer at your tool's global level, once:
+One thing to know before you assume it's fully wired up: the auto-load only fires while your agent's working directory is inside the cloned folder. If you're happy doing hub-related work as its own dedicated session, that's already enough, no extra step needed. If you want every session, in any project folder, to know the hub exists, hand your agent this prompt once rather than clicking through settings yourself. All three tools I use can make this change themselves: Claude Code and Codex just edit a plain text file, and Cursor has its own tool for adding a global rule.
 
-- **Claude Code:** a line in your user-level `~/CLAUDE.md` (separate from the hub's own project-level file, and loaded in every session regardless of folder). Don't reach for the separate persistent-memory feature instead: I tried that first and it turned out to be scoped per project directory, not global, so a pointer saved there only covers sessions started from that same folder.
-- **Codex:** it merges a global instructions file (`~/.codex/AGENTS.md`) in addition to whatever `AGENTS.md` it finds by walking up from your working directory. Add the same pointer there.
-- **Cursor:** open Settings → Rules → "User Rules," a global text box rather than a file, and paste the pointer in. Set it to *Always Apply*, not *Apply Intelligently*. The latter leaves it to Cursor's own judgment whether the rule looks relevant, which defeats the point of a rule whose whole job is firing regardless of what the task looks like on the surface.
+```
+Add a pointer to my agent hub to your own global configuration, not just this
+project's:
 
-Use an absolute path in the pointer (`/Users/you/agent-hub`), not `~`. It doesn't reliably expand inside every tool call. Beyond that, the pointer only needs to say two things: where the hub lives, and that it's worth checking when relevant. `AGENTS.md` handles the rest once your agent gets there.
+- If you're Claude Code: add it to ~/CLAUDE.md (my user-level file, not this
+  repo's), under a new "## Agent hub" heading.
+- If you're Codex: add it to ~/.codex/AGENTS.md (my global instructions
+  file), under a new heading.
+- If you're Cursor: add it as a new global User Rule, not a project rule
+  under .cursor/rules/ (that only fires in this one repo). Name it
+  "Agent hub" and set it to Always Apply, not Apply Intelligently.
+
+The pointer text:
+"My agent hub lives at /Users/<you>/agent-hub. When a task touches an
+ongoing project, a prior decision, or anything worth remembering across
+sessions, read AGENTS.md there and follow it: start from HOME.md, then
+write back at the end of meaningful work. Ask before committing and
+pushing hub changes."
+
+Show me the exact change before you save it -- this is a global file that
+affects every future session, not just this one.
+```
+
+Two things worth knowing about that prompt. Don't let it substitute Claude Code's separate persistent-memory feature for the file edit above: I tried that first, and it turned out to be scoped per project directory, not global, so a pointer saved there only covers sessions started from that same folder. And the pointer text uses an absolute path (`/Users/you/agent-hub`), not `~`, since `~` doesn't reliably expand inside every tool call.
 
 ### Option 2: prompt an agent you already have
 
