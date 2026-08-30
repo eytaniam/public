@@ -1,0 +1,9 @@
+.DS_Store
+.obsidian/
+
+# Sensitive working files — personal data, financial details, customer data, binary decks.
+# Anything under a private/ folder stays LOCAL ONLY: never pushed to GitHub,
+# never synced to mobile/cloud agents. Back these up separately.
+work/*/private/
+work/private/
+private/

@@ -1,0 +1,1 @@
+Raw quick-capture drops — especially from mobile, where you don't want to navigate the wiki structure to jot something down. Just drop a file here with whatever you were thinking. The librarian (or you, or any agent asked to "maintain the hub") files these into the right `projects/`/`topics/` page or turns them into a `log/` entry, then deletes the inbox file.
