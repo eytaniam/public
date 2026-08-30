@@ -531,7 +531,7 @@ function renderCard(record) {
     ? `<a class="pdf-link" href="${escapeHtml(record.pdfHref)}" download>${downloadIconMarkup()}<span>PDF</span></a>`
     : "";
 
-  return `<article class="card" data-type="${typeClass}" data-folder="${escapeHtml(record.folder)}" data-haspdf="${record.pdfHref ? "true" : "false"}" data-search="${escapeHtml(record.searchText)}">
+  return `<article class="card" data-type="${typeClass}" data-folder="${escapeHtml(record.folder)}" data-haspdf="${record.pdfHref ? "true" : "false"}" data-updated="${escapeHtml(record.updated)}" data-search="${escapeHtml(record.searchText)}">
       <div class="preview">${preview}</div>
       <div class="body">
         <div class="meta"><span class="type ${typeClass}">${typeLabel}</span><span>Updated ${escapeHtml(record.updated)}</span></div>
@@ -734,11 +734,30 @@ function renderHtml({ title, records }) {
       cursor: pointer;
     }
 
+    .results-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 0 14px;
+    }
+
     .results-line {
       min-height: 22px;
-      margin: 0 0 14px;
+      margin: 0;
       color: var(--muted);
       font-size: 14px;
+    }
+
+    .sort-control select {
+      height: 30px;
+      padding: 0 8px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
     }
 
     .grid {
@@ -996,7 +1015,16 @@ function renderHtml({ title, records }) {
       </label>
     </section>
 
-    <p class="results-line" id="resultsLine"></p>
+    <div class="results-row">
+      <p class="results-line" id="resultsLine"></p>
+      <label class="sort-control">
+        <span class="sr-only">Sort by date updated</span>
+        <select id="sortOrder" title="Sort by date updated">
+          <option value="desc" selected>Newest first</option>
+          <option value="asc">Oldest first</option>
+        </select>
+      </label>
+    </div>
     <section class="grid" id="grid" aria-live="polite">
       ${cardsHtml}
     </section>
@@ -1011,8 +1039,17 @@ function renderHtml({ title, records }) {
     const typeButtons = Array.from(document.querySelectorAll("[data-filter-type]"));
     const pdfToggle = document.getElementById("pdfToggle");
     const folderSelect = document.getElementById("folderFilter");
+    const sortSelect = document.getElementById("sortOrder");
     const cards = Array.from(grid.querySelectorAll(".card"));
-    const state = { type: "all", pdfOnly: false, folder: "all" };
+    const state = { type: "all", pdfOnly: false, folder: "all", sort: "desc" };
+
+    function applySort() {
+      const sorted = [...cards].sort((a, b) => {
+        const cmp = a.dataset.updated.localeCompare(b.dataset.updated);
+        return state.sort === "asc" ? cmp : -cmp;
+      });
+      sorted.forEach((card) => grid.appendChild(card));
+    }
 
     function matches(card, query) {
       if (state.type !== "all" && card.dataset.type !== state.type) return false;
@@ -1066,7 +1103,15 @@ function renderHtml({ title, records }) {
       });
     });
 
+    if (sortSelect) {
+      sortSelect.addEventListener("change", () => {
+        state.sort = sortSelect.value;
+        applySort();
+      });
+    }
+
     searchInput.addEventListener("input", render);
+    applySort();
     render();
   </script>
 </body>
