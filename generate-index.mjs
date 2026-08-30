@@ -207,10 +207,21 @@ function parseExtra(extraValue) {
   };
 }
 
+function hasFrontMatter(content) {
+  return /^---\r?\n[\s\S]*?\r?\n---(\r?\n|$)/.test(content);
+}
+
 function fileRecord({ filePath, root, hrefOverride = null }) {
   const content = readFileSync(filePath, "utf8");
   const type = classifyType(filePath);
-  const href = hrefOverride || encodeURI(toPosixPath(relative(root, filePath)));
+  let href = hrefOverride || encodeURI(toPosixPath(relative(root, filePath)));
+  if (!hrefOverride && type === "markdown" && hasFrontMatter(content)) {
+    // GitHub Pages (Jekyll) builds any markdown file that has front matter into
+    // an .html page at the same path -- the raw .md source is never served.
+    // A markdown file with no front matter is copied through untouched, so it
+    // stays reachable at its original .md path.
+    href = href.replace(/\.(md|markdown)$/i, ".html");
+  }
   const rawText = type === "html" ? stripHtml(content) : stripMarkdown(content);
   const stats = statSync(filePath);
   const title = extractTitle(content, filePath, type);
