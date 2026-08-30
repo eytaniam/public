@@ -5,3 +5,16 @@ baseurl: "/public"
 theme: minima
 markdown: kramdown
 plugins: []
+
+# agent-hub-template/ is a clonable git scaffold, not site content: its .md
+# files carry the wiki's own frontmatter (type/status/updated), which makes
+# Jekyll treat them as pages otherwise. Keep it out of the build entirely.
+exclude:
+  - agent-hub-template
+  - generate-index.mjs
+
+# This site's real navigation is the searchable index.html grid, not a theme
+# nav bar. Without this, minima auto-populates the header with one link per
+# built page, which grows without bound and duplicates whenever two pages
+# share a title.
+header_pages: []
