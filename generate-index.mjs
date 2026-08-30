@@ -21,6 +21,8 @@ const DEFAULT_IGNORES = new Set([
   "vendor",
   "work",
   "__pycache__",
+  // Clonable repo templates: scaffold/placeholder .md files, not site content.
+  "agent-hub-template",
 ]);
 
 const SUPPORTED_EXTENSIONS = new Set([".html", ".htm", ".md", ".markdown"]);
