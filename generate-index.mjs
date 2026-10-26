@@ -196,13 +196,18 @@ function parseFrontMatterDate(content) {
   // checkout resets every file's mtime to "now", and any unrelated edit
   // (a typo fix, a link update) bumps it too -- so it can't distinguish
   // "genuinely new" from "recently touched" or survive a re-checkout at all.
-  // The authored `date:` front matter field doesn't drift either way.
+  // The authored front matter dates don't drift either way. `updated:` (set
+  // when a post is revised, shown on the article byline) wins over the
+  // original `date:` so the card reflects the latest revision.
   const frontMatter = content.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
   if (!frontMatter) return null;
-  const dateLine = frontMatter[1].match(/^date:\s*(.+)$/m);
-  if (!dateLine) return null;
-  const match = dateLine[1].trim().replace(/^["']|["']$/g, "").match(/^(\d{4}-\d{2}-\d{2})/);
-  return match ? match[1] : null;
+  for (const field of ["updated", "date"]) {
+    const dateLine = frontMatter[1].match(new RegExp(`^${field}:\\s*(.+)$`, "m"));
+    if (!dateLine) continue;
+    const match = dateLine[1].trim().replace(/^["']|["']$/g, "").match(/^(\d{4}-\d{2}-\d{2})/);
+    if (match) return match[1];
+  }
+  return null;
 }
 
 function extractTitle(content, filePath, type) {
