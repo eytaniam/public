@@ -1,7 +1,7 @@
 ---
 type: topic
 status: active
-updated: 2026-08-29
+updated: 2026-10-26
 ---
 
 # Home
@@ -18,4 +18,4 @@ _(cross-cutting concepts go here as you add them to `topics/`)_
 
 ## Recent log
 
-_(newest entries from `log/` go here, ~5 at a time — oldest fall off the list but stay in `log/`)_
+_(newest entries from `log/` go here, the newest ~10 — older ones fall off the list but stay in `log/`. Keep this list capped: every agent reads this file on every task.)_
