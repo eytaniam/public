@@ -30,11 +30,12 @@
 
     <header class="article-header">
       <h1>{{ page.title }}</h1>
-      {%- if page.date or page.author %}
+      {%- if page.date or page.author or page.updated %}
       <p class="article-meta">
         {%- if page.date %}{{ page.date | date: "%B %-d, %Y" }}{% endif -%}
         {%- if page.date and page.author %} &middot; {% endif -%}
         {%- if page.author %}{{ page.author }}{% endif -%}
+        {%- if page.updated %} &middot; Updated {{ page.updated | date: "%B %-d, %Y" }}{% endif -%}
       </p>
       {%- endif %}
     </header>

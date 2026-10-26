@@ -1,3 +1,3 @@
-Finished, shareable artifacts — memos, specs, decision docs — the polished outputs themselves, not the working drafts (those live in `work/<project>/`). Name them `<project>-<slug>.md`, frontmatter `type: doc`, `status: draft | final`. Link each doc from the owning `projects/` page and from the log entry that produced it.
+Finished, shareable artifacts — memos, specs, decision docs — the polished outputs themselves, not the working drafts (those live in `work/<project>/`). Name them `<project>-<slug>.md`, frontmatter `type: doc`, `status: draft | final`. If the doc is reviewed in a shared drive, keep the markdown source here with the drive link as `canonical:` in the frontmatter and say which copy wins. Link each doc from the owning `projects/` page and from the log entry that produced it.
 
 Delete this file once you've added your first real doc.

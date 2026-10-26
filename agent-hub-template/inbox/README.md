@@ -1,1 +1,3 @@
 Raw quick-capture drops — especially from mobile, where you don't want to navigate the wiki structure to jot something down. Just drop a file here with whatever you were thinking. The librarian (or you, or any agent asked to "maintain the hub") files these into the right `projects/`/`topics/` page or turns them into a `log/` entry, then deletes the inbox file.
+
+This is also the write path for tools that can read the hub but cannot push: a chat assistant that produces a decision worth keeping drafts a log entry in the `log/YYYY-MM-DD-short-slug.md` format, you drop the draft here, and the librarian files it.
