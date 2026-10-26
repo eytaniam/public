@@ -3,6 +3,7 @@ title: Agent Hub, how I give my AI tools shared memory
 description: A git repo that acts as long-term memory across every AI agent I use, so nothing I learn in one session gets lost, plus two ways to set up the same thing yourself.
 author: Eytan Lerba
 date: 2026-08-30
+updated: 2026-10-26
 ---
 
 I use a mix of Claude, Codex, and Grok depending on the task, and I'll often have them check each other's work. The problem with juggling tools like that is each one starts every session with a blank memory. Something I teach one tool rarely carries over to another, and keeping them in sync across a week of work meant constantly re-explaining the same context.
@@ -27,6 +28,7 @@ agent-hub/
 │   └── private/       #   gitignored: sensitive stuff, local only, never pushed
 ├── log/                # append-only journal, one dated file per completed task
 ├── inbox/              # quick-capture drops (from mobile, usually), waiting to be filed
+├── .agents/skills/    # tool-neutral skills folder (Codex reads it); the write-back skill lives here
 └── .claude/ .codex/ .cursor/   # each tool's native config, pointing at shared conventions
 ```
 
@@ -44,7 +46,7 @@ Pages are wiki-style: short, and cross-linked with `[[double-bracket-links]]` (O
 2. Update the relevant `projects/` page to reflect the new current state (the log holds history, the project page holds the present).
 3. Link liberally. First mention of anything gets `[[linked]]`, even a page that doesn't exist yet (a "red link" just marks something worth writing later).
 4. Update `HOME.md` if a new page got created.
-5. `git add -A && git commit -m "log: <what happened>" && git push`.
+5. Commit with a `log: <what happened>` message and push, after asking. *Decision (2026-08-30 → 2026-10-09, superseded): the original version of this step committed and pushed without asking. Several tools write to the one repo now, and the global pointer further down already said "ask first," so the contract caught up with the pointer.*
 
 Every agent, whichever tool it is, gets told to do the same read and write dance. That's what makes the memory shared instead of per-tool.
 
@@ -55,6 +57,7 @@ Markdown drifts out of date, so pages tag individual facts with freshness labels
 - `Decision (YYYY-MM-DD):` for a settled choice, with the reason
 - `Open question as of YYYY-MM-DD:` for something still unresolved, with an owner if I know one
 - `Historical note (YYYY-MM-DD):` for context that shouldn't drive current work
+- `Needs verification:` for something that may be stale; an agent checks before using it, and it's what the 30-day rule below turns a fact into
 
 A label with only a start date tells you when something became true, not whether it still is. So a closed fact gets an end date and a pointer to what replaced it, instead of getting deleted or silently rewritten:
 
@@ -89,11 +92,11 @@ Each tool keeps its own native config format (Claude Code uses `.claude/`, Codex
 - Codex's cloud mode can check it out the same way.
 - Any tool with a GitHub-aware agent mode can point at it the same way. You're not limited to your desktop.
 
-One honest caveat, and it's why Grok isn't in the folder list above: a tool needs some way to read and write GitHub (a native connector, or the ability to run git) to fully participate. Grok doesn't yet, so for me it's read-only: I paste `AGENTS.md` plus a project page in when I want it caught up, but it can't write back on its own.
+One honest caveat, and it's why Grok isn't in the folder list above: a tool needs some way to read and write GitHub (a native connector, or the ability to run git) to fully participate. Grok doesn't yet, so for me it's read-only: I paste `AGENTS.md` plus a project page in when I want it caught up, but it can't write back on its own. *(Update 2026-10-26: this caveat has since shrunk; a chat tool now writes through the inbox. See "Two months in" below.)*
 
 ### What this costs, in tokens
 
-Roughly nothing to run (it's markdown and git), but it isn't literally free. A task following the reading protocol pays for `AGENTS.md` plus `HOME.md` once (mine run around 4,200 tokens combined, at a rough four-characters-per-token estimate), plus whatever handful of linked pages the task actually needs (each capped around 150 lines, so maybe 500 to 800 tokens apiece, call it 1,500 to 3,000 more for two to four relevant links). So: roughly 5,000 to 8,000 tokens of added input per task, cold. That's the whole point of not bulk-reading the repo. Without that rule, you'd pay for the entire wiki every session instead of a slice of it, and the cost would grow as the wiki grows instead of staying roughly flat.
+Roughly nothing to run (it's markdown and git), but it isn't literally free. A task following the reading protocol pays for `AGENTS.md` plus `HOME.md` once, plus whatever handful of linked pages the task actually needs (each capped around 150 lines, so maybe 500 to 800 tokens apiece, call it 1,500 to 3,000 more for two to four relevant links). The first part is the one to watch, because it's paid on every task and it drifts. Mine ran about 4,200 tokens combined when I first published this (a rough four-characters-per-token estimate). Two months later it had crept to about 4,700, almost all of it in `HOME.md`, whose recent-log list had grown to fifty entries. Capping that list at the newest ten brought the pair down to about 3,000. So the per-task overhead is roughly 4,500 to 6,000 tokens of added input, cold, and the growth vector is the index, not the pages. That's the whole point of not bulk-reading the repo. Without that rule, you'd pay for the entire wiki every session instead of a slice of it, and the cost would grow as the wiki grows instead of staying roughly flat.
 
 Two things soften this further. Prompt caching means repeat reads of `AGENTS.md` and `HOME.md` within the same session are billed at a fraction of full price. And the write side (a log entry plus a small page update) is only a few hundred tokens of generation; the git commit and push cost nothing, they're shell commands. The real lever on cost isn't the hub's existence, it's holding the line on the two policies above: keep pages small (now enforced by a hook, not just a convention), and don't let an agent read everything "to be safe."
 
@@ -103,7 +106,7 @@ Pick whichever path fits how you work.
 
 ### Option 1: clone the repo
 
-I've published a working skeleton at [github.com/eytaniam/public/tree/main/agent-hub-template](https://github.com/eytaniam/public/tree/main/agent-hub-template). It already has the `AGENTS.md` contract, the folder structure, the pre-commit hook, and per-tool config for Claude Code, Codex, and Cursor in place. Grab it, run `git init`, push it as your own repo, and start writing.
+I've published a working skeleton at [github.com/eytaniam/public/tree/main/agent-hub-template](https://github.com/eytaniam/public/tree/main/agent-hub-template). It already has the `AGENTS.md` contract, the folder structure, the pre-commit hook, the librarian, the write-back skill, and per-tool config for Claude Code, Codex, and Cursor in place. It has a `CHANGELOG.md` too, so if you cloned an earlier version you can see what moved. Grab it, run `git init`, push it as your own repo, and start writing.
 
 One thing to know before you assume it's fully wired up: the auto-load only fires while your agent's working directory is inside the cloned folder. If you're happy doing hub-related work as its own dedicated session, that's already enough, no extra step needed. If you want every session, in any project folder, to know the hub exists, hand your agent this prompt once rather than clicking through settings yourself. All three tools I use can make this change themselves: Claude Code and Codex just edit a plain text file, and Cursor has its own tool for adding a global rule.
 
@@ -156,8 +159,8 @@ Create a new local folder and git repo with this structure:
 
 Write AGENTS.md with this contract (adapt wording to taste but keep the mechanics):
 
-1. Every page is a small wiki page: frontmatter (type, status, updated: YYYY-MM-DD)
-   followed by content. Cross-reference other pages with [[wiki-links]] — a link
+1. Every page is a small wiki page: frontmatter (type: project | topic | doc | log |
+   inbox, status, updated: YYYY-MM-DD) followed by content. Cross-reference other pages with [[wiki-links]] — a link
    resolves to a unique filename anywhere in the repo.
 2. Reading protocol for any agent starting a task: read HOME.md first, then follow
    only the links relevant to the task. Never bulk-read the whole repo.
@@ -165,11 +168,12 @@ Write AGENTS.md with this contract (adapt wording to taste but keep the mechanic
    log/YYYY-MM-DD-short-slug.md (what happened, key decisions + why, what was
    produced and where); update the relevant projects/ page to reflect the new
    current state; link liberally, including to pages that don't exist yet;
-   update HOME.md if a new page was created; then
+   update HOME.md if a new page was created; then ask me before running
    git add -A && git commit -m "log: <summary>" && git push.
 4. Freshness labels on facts inside project pages, not just a page-level date:
    "Current as of YYYY-MM-DD:", "Decision (YYYY-MM-DD):",
-   "Open question as of YYYY-MM-DD:", "Historical note (YYYY-MM-DD):".
+   "Open question as of YYYY-MM-DD:", "Historical note (YYYY-MM-DD):",
+   "Needs verification:".
    When a fact is superseded or no longer true, close it with an end date and
    a pointer instead of deleting it, e.g.
    "Decision (2026-06-01 → 2026-08-10, superseded by [[new-page]]):".
@@ -197,7 +201,13 @@ Then:
 - Set up per-tool config so every agent I use (Claude Code, Codex, Cursor,
   or others) reads AGENTS.md automatically at the start of a session, and
   follows the same read/write protocol above. Use each tool's native
-  convention for this (e.g. Claude Code auto-reads CLAUDE.md at repo root).
+  convention for this (Claude Code auto-reads CLAUDE.md at repo root; Codex
+  and Cursor auto-read AGENTS.md there).
+- Package the writing protocol as a skill named hub-log, so the write step
+  has a trigger and not just a rule: put the same SKILL.md in
+  .claude/skills/hub-log/, .agents/skills/hub-log/, and .cursor/skills/hub-log/.
+  Its description should fire on "log this to the hub" and proactively at
+  the end of any substantial task; its body is step 3 above, spelled out.
 - Add a global pointer too, not just the project-level file: edit
   ~/CLAUDE.md (Claude Code), ~/.codex/AGENTS.md (Codex), or add a global
   User Rule set to Always Apply, not Apply Intelligently (Cursor) — for
@@ -218,8 +228,22 @@ tools I actually use so you only wire up config for those.
 
 Whichever path you take, three things are worth knowing going in:
 
-- **The write step is what keeps it current, and nothing enforces it automatically.** Log, then update the page, then commit, at the end of every session. It's worth having your agent nag itself to do this rather than assuming it will.
-- **Not every tool can write back equally well.** Anything with real git and file access can fully participate. A chat-only tool with no GitHub connection can still read the wiki if you paste in `AGENTS.md` plus a project page, but it can't log its own work back. That write has to come from a tool that can push.
+- **The write step is what keeps it current.** Log, then update the page, then commit, at the end of every session. Nothing enforces it mechanically, but it no longer relies on the agent remembering either: it's a skill with a trigger now (see "Two months in," below).
+- **Not every tool can write back equally well.** Anything with real git and file access can fully participate. A chat-only tool can read the wiki through a GitHub connector or a pasted `AGENTS.md` plus a project page, and it can write by drafting a log entry that you drop in `inbox/`. The push itself still has to come from a tool that can push.
 - **Start small.** One `HOME.md`, one real project page, and the logging habit matter more than a fully built-out folder tree with nothing in it.
 
 That's genuinely the system I run every day, across every machine I work from. If you set up your own version of it, I'd like to hear what you change.
+
+## Two months in: what changed
+
+*Added 2026-10-26.* A system like this should visibly evolve, so rather than quietly rewriting the post I'm keeping the recipe above as it was, fixing only the parts that would trip you up (marked inline), and recording what changed here. The template has a `CHANGELOG.md` that mirrors this section. Each item is a problem I hit, what I changed, and why.
+
+**Standing context is the cost to police, not wiki size.** The problem: the wiki stayed cheap, but the two files every agent loads on every task did not. `HOME.md` had quietly doubled, and `AGENTS.md` had accumulated rules that belonged to specific projects (how to handle a to-do, which deck template to use). The change: `AGENTS.md` carries only the contract, page-specific rules live on the page that owns them with a one-line pointer from the contract, and the `HOME.md` recent-log list is capped at the newest ten entries (the full journal is one `ls log/` away). The why: the wiki is loaded on demand, but the contract and the index are loaded unconditionally, so they are the only place where growth compounds. This is also my answer to the "delete 90% of your AI setup" advice going around: most of it doesn't apply to a workspace you load on demand, and the part that does apply is exactly this.
+
+**The write step is a skill now, not a hope.** The problem: I'd told you above to have your agent "nag itself" to log work, which is to say I had no mechanism. The change: the writing protocol is packaged as a skill called `hub-log`, with a description that fires on "log this to the hub" and proactively at the end of any substantial task, and a body that spells out the log-entry shape (what happened, decisions with their reasons, outputs and where they live). The same file sits in `.claude/skills/`, in `.agents/skills/` (the tool-neutral location Codex reads), and in `.cursor/skills/`, so it travels with every clone. The why: a rule in a contract competes with everything else in context; a skill with a trigger is loaded at the moment it's needed.
+
+**Chat-only tools write through the inbox.** The problem: the Grok caveat above, generalized. Any tool that can read but not push was locked out of the write side. The change: a chat tool gets a four-line preference (read `HOME.md` before answering questions about my projects), reads the hub through a GitHub connector, and when a conversation produces a decision worth keeping it drafts a log entry in the `log/YYYY-MM-DD-slug.md` format. I drop that into `inbox/`, or hand it to a session that can push, and the librarian files it. The why: the inbox already existed for exactly this shape of thing, raw drops waiting to be filed. It just hadn't occurred to me that an agent could be the one dropping.
+
+**The hub is a routing layer, not a mirror.** The problem: the privacy section covers what goes in `private/`, but says nothing about what shouldn't be in the hub at all, and the hub started attracting copies of things that live better elsewhere. The change: a short "where finished work goes" section in the contract. Memos and specs go in `docs/`; a doc that gets reviewed in a shared drive keeps its markdown source in the hub with the drive link as `canonical:` in the frontmatter, and says which copy wins; decks, PDFs, and large HTML stay where they are and the hub gets a pointer; a large documentation corpus gets a routing page that says where to look, never a copy. The why: a mirror is a stale second source of truth by its second week. The hub holds decisions and pointers; the thing itself stays at its source.
+
+Two smaller notes. First, on the tools' own memory features: I'm leaving them on. Stable preferences (how I like things written, where the hub lives) belong in the tool's memory; project facts belong in the hub, where they carry freshness labels; and a sensitive conversation gets memory turned off for that chat. Second, a trap if you read the hub on your phone through GitHub: GitHub Pages on a personal account is public even when the repository is private. Read the repo directly, or generate a `README.md` with an action. Don't turn on Pages.
