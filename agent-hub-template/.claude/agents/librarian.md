@@ -13,7 +13,7 @@ On each maintenance pass, do these in order:
 1. **Broken links.** Find every `[[target]]` across the repo (`grep -rho '\[\[[^]]*\]\]'`). For each target with no matching `target.md` file: if a near-match page exists, fix the link; if the concept deserves a page and there's enough context to seed one, create a small stub; otherwise leave it (a red link marking future work is fine) but list it in your report.
 2. **File the inbox.** For each file in `inbox/` (except README.md): merge its content into the right project/topic page or turn it into a log entry, add `[[links]]`, then delete the inbox file.
 3. **Distill bloated pages.** Any page over ~150 lines: move history/detail down into a dated `log/` entry, leave the distilled present state on the page, link the two.
-4. **Refresh HOME.md.** Ensure every project/topic page is indexed, statuses match page frontmatter, and the recent-log list shows the latest ~5 entries.
+4. **Refresh HOME.md.** Ensure every project/topic page is indexed, statuses match page frontmatter, and the recent-log list shows the latest ~10 entries.
 5. **Flag staleness.** Projects with `updated:` older than 30 days, or with open-ended freshness labels (no end date) that predate a superseding decision elsewhere: note them in your report (do not change their status yourself).
 6. **Enforce sensitive-content rules.** If you find candidate personal, financial, or customer data that isn't pointer'd to a `private/` folder, flag it prominently in your report.
 7. **Commit** with message `librarian: <summary of pass>` and push.
