@@ -15,4 +15,4 @@ You are writing memory for future agents. Optimize for what the *next* agent (or
 3. **Link liberally**: first mention of any project/topic/page gets `[[wiki-link]]` treatment, including links to pages that don't exist yet.
 4. **Check the sensitive-content rules in AGENTS.md** before writing: no personal, financial, or customer data — use pointers instead.
 5. **Update HOME.md** recent-log list (keep ~10 newest).
-6. **Commit and push**, after asking unless already told to push: `git add -A && git commit -m "log: <slug>" && git push`. If you cannot push from where you are, write the entry anyway and say so; a session that can push, or the owner via `inbox/`, will carry it.
+6. **Commit and push**, after asking unless already told to push: stage only files belonging to this task, review the staged diff, then commit with `log: <slug>` and push. If you cannot push from where you are, write the entry anyway and say so; a session that can push, or the owner via `inbox/`, will carry it.

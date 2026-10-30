@@ -196,13 +196,18 @@ function parseFrontMatterDate(content) {
   // checkout resets every file's mtime to "now", and any unrelated edit
   // (a typo fix, a link update) bumps it too -- so it can't distinguish
   // "genuinely new" from "recently touched" or survive a re-checkout at all.
-  // The authored `date:` front matter field doesn't drift either way.
+  // The authored front matter dates don't drift either way. `updated:` (set
+  // when a post is revised, shown on the article byline) wins over the
+  // original `date:` so the card reflects the latest revision.
   const frontMatter = content.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
   if (!frontMatter) return null;
-  const dateLine = frontMatter[1].match(/^date:\s*(.+)$/m);
-  if (!dateLine) return null;
-  const match = dateLine[1].trim().replace(/^["']|["']$/g, "").match(/^(\d{4}-\d{2}-\d{2})/);
-  return match ? match[1] : null;
+  for (const field of ["updated", "date"]) {
+    const dateLine = frontMatter[1].match(new RegExp(`^${field}:\\s*(.+)$`, "m"));
+    if (!dateLine) continue;
+    const match = dateLine[1].trim().replace(/^["']|["']$/g, "").match(/^(\d{4}-\d{2}-\d{2})/);
+    if (match) return match[1];
+  }
+  return null;
 }
 
 function extractTitle(content, filePath, type) {
@@ -352,6 +357,7 @@ function markdownToHtml(markdown) {
   let inCode = false;
   let codeLines = [];
   let listItems = [];
+  let listTag = "ul";
   let paragraph = [];
 
   function inline(value) {
@@ -364,9 +370,9 @@ function markdownToHtml(markdown) {
 
   function flushList() {
     if (listItems.length === 0) return;
-    output.push("<ul>");
+    output.push(`<${listTag}>`);
     for (const item of listItems) output.push(`<li>${inline(item)}</li>`);
-    output.push("</ul>");
+    output.push(`</${listTag}>`);
     listItems = [];
   }
 
@@ -405,9 +411,13 @@ function markdownToHtml(markdown) {
     }
 
     const bullet = line.match(/^\s*[-*]\s+(.+)$/);
-    if (bullet) {
+    const numbered = line.match(/^\s*\d+\.\s+(.+)$/);
+    if (bullet || numbered) {
       flushParagraph();
-      listItems.push(bullet[1].trim());
+      const nextTag = numbered ? "ol" : "ul";
+      if (listItems.length && listTag !== nextTag) flushList();
+      listTag = nextTag;
+      listItems.push((numbered || bullet)[1].trim());
       continue;
     }
 
@@ -480,6 +490,9 @@ function markdownPrintPage(record) {
       padding: 0.1em 0.28em;
     }
 
+    h1, h2, h3, h4 { break-after: avoid; }
+    pre code { padding: 0; background: none; font-size: 10px; }
+
     pre {
       padding: 14px;
       overflow-wrap: anywhere;
@@ -492,6 +505,7 @@ function markdownPrintPage(record) {
 </head>
 <body>
   <main>
+    ${/^#\s+/m.test(markdown) ? "" : `<h1>${escapeHtml(record.title)}</h1>`}
     ${markdownToHtml(markdown)}
   </main>
 </body>
@@ -505,7 +519,7 @@ function renderPdf(chromePath, url, outputPath) {
     "--disable-gpu",
     "--no-sandbox",
     "--allow-file-access-from-files",
-    "--print-to-pdf-no-header",
+    "--no-pdf-header-footer",
     `--print-to-pdf=${outputPath}`,
     url,
   ], { stdio: "ignore" });
