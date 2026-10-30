@@ -357,6 +357,7 @@ function markdownToHtml(markdown) {
   let inCode = false;
   let codeLines = [];
   let listItems = [];
+  let listTag = "ul";
   let paragraph = [];
 
   function inline(value) {
@@ -369,9 +370,9 @@ function markdownToHtml(markdown) {
 
   function flushList() {
     if (listItems.length === 0) return;
-    output.push("<ul>");
+    output.push(`<${listTag}>`);
     for (const item of listItems) output.push(`<li>${inline(item)}</li>`);
-    output.push("</ul>");
+    output.push(`</${listTag}>`);
     listItems = [];
   }
 
@@ -410,9 +411,13 @@ function markdownToHtml(markdown) {
     }
 
     const bullet = line.match(/^\s*[-*]\s+(.+)$/);
-    if (bullet) {
+    const numbered = line.match(/^\s*\d+\.\s+(.+)$/);
+    if (bullet || numbered) {
       flushParagraph();
-      listItems.push(bullet[1].trim());
+      const nextTag = numbered ? "ol" : "ul";
+      if (listItems.length && listTag !== nextTag) flushList();
+      listTag = nextTag;
+      listItems.push((numbered || bullet)[1].trim());
       continue;
     }
 
@@ -485,6 +490,9 @@ function markdownPrintPage(record) {
       padding: 0.1em 0.28em;
     }
 
+    h1, h2, h3, h4 { break-after: avoid; }
+    pre code { padding: 0; background: none; font-size: 10px; }
+
     pre {
       padding: 14px;
       overflow-wrap: anywhere;
@@ -497,6 +505,7 @@ function markdownPrintPage(record) {
 </head>
 <body>
   <main>
+    ${/^#\s+/m.test(markdown) ? "" : `<h1>${escapeHtml(record.title)}</h1>`}
     ${markdownToHtml(markdown)}
   </main>
 </body>
@@ -510,7 +519,7 @@ function renderPdf(chromePath, url, outputPath) {
     "--disable-gpu",
     "--no-sandbox",
     "--allow-file-access-from-files",
-    "--print-to-pdf-no-header",
+    "--no-pdf-header-footer",
     `--print-to-pdf=${outputPath}`,
     url,
   ], { stdio: "ignore" });

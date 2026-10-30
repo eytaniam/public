@@ -1,6 +1,14 @@
 # Changelog
 
-Dated changes to this template, newest first. The post that explains the system (`../writing/agent-hub-shared-memory.md`) carries a matching "Two months in" section; this file takes each change as it lands, the post takes them in batches.
+Dated changes to this template, newest first. The [article](../writing/agent-hub-shared-memory.md) describes the current setup and links here for revision history.
+
+## 2026-10-30
+
+- Both setup paths explicitly cover enabling the page-size hook and checking staged content. All three hub-log skill copies stage only task files and review the staged diff.
+- Both librarian configs explicitly ask before committing and pushing unless already authorized; stage only files from the maintenance pass.
+- README summary includes all five freshness labels and the ask-first commit policy; clarifies that built-in tool memory does not automatically transfer between tools.
+- The page-size hook checks staged content, including renamed pages, so partial staging cannot bypass the cap.
+- Companion article setup prompts corrected for Claude's global instructions path and Cursor User Rules; from-scratch prompt now includes the ten-entry index cap and finished-document conventions.
 
 ## 2026-10-26
 

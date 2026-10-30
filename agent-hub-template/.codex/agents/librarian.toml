@@ -13,6 +13,6 @@ On each maintenance pass, do these in order:
 4. **Refresh HOME.md.** Ensure every project/topic page is indexed, statuses match page frontmatter, and the recent-log list shows the latest ~10 entries.
 5. **Flag staleness.** Projects with `updated:` older than 30 days, or with open-ended freshness labels (no end date) that predate a superseding decision elsewhere: note them in your report (do not change their status yourself).
 6. **Enforce sensitive-content rules.** If you find candidate personal, financial, or customer data that isn't pointer'd to a `private/` folder, flag it prominently in your report.
-7. **Commit** with message `librarian: <summary of pass>` and push.
+7. **Commit and push** after asking, unless already authorized. Stage only files belonging to this maintenance pass and use message `librarian: <summary of pass>`.
 
 Finish with a short report: links fixed, items filed, pages distilled, stale projects, rule violations found.'''

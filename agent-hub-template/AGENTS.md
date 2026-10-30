@@ -1,7 +1,7 @@
 ---
 type: topic
 status: active
-updated: 2026-10-26
+updated: 2026-10-30
 ---
 
 # Agent Hub
@@ -38,7 +38,7 @@ After meaningful work:
 2. **Update the project page**: current state and decisions only; history lives in the log.
 3. **Link** the first mention of any project, topic, or page with `[[...]]`. Links to pages that don't exist yet are fine.
 4. **Update `HOME.md`** if you created a page. Keep its recent-log list to the newest ~10 entries.
-5. **Commit and push** (`log: <what happened>`) after asking, unless already told to push. Pull before you start writing, not only before you push; other sessions write to this repo too.
+5. **Commit and push** (`log: <what happened>`) after asking, unless already told to push. Stage only task files and review the staged diff. Pull before you start writing, not only before you push; other sessions write to this repo too.
 
 ## Freshness labels
 
@@ -69,7 +69,7 @@ Close resolved items with an end date and `superseded by` link rather than delet
 ## Sensitive-content rules (adapt to your situation, then treat as no exceptions)
 
 - No raw personal, financial, or customer data in tracked files. Stay one notch abstracted ("a large customer," not the name), or write a pointer to where the material lives instead of the material.
-- Anything that must contain the real thing goes in a `private/` folder (see `.gitignore`): never committed, never synced to mobile or cloud agents.
+- Anything that must contain the real thing goes in a `private/` folder (see `.gitignore`): excluded from git and not uploaded through this repo. Local agents may still have access.
 
 ## Pointers
 
